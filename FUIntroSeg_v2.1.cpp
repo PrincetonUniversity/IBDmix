@@ -33,24 +33,33 @@ double cal_pearsoncorr(int *x, int *y, int n){
 // pa: reference allele frequency; pb: alternative allele frequency
 double cal_lod(int source_gt, int target_gt, double pb, double aerr, double merr){
 	double pa = 1-pb;
+    double berr = 1 - aerr
+    double denom = 1 - aerr * berr
+    double term1 = berr * (1 - merr) + aerr * merr
+    double term2 = berr * merr + aerr * (1 - merr)
 	if(source_gt == 0 && target_gt == 0)
-        return log10(((1-aerr)*(1-merr)+aerr*merr) / pa / (1-aerr*(1-aerr)));
-	if(source_gt == 0 && target_gt == 1)
-        return log10(0.5 * ((1-aerr)*merr+aerr*(1-merr)) / pb / (1-aerr*(1-aerr)) + 0.5 * ((1-aerr)*(1-merr)+aerr*merr) / pa / (1-aerr*(1-aerr)));
-	if(source_gt == 0 && target_gt == 2)
-        return log10(((1-aerr)*merr+aerr*(1-merr) + minesp) / pb / (1-aerr*(1-aerr) + minesp));
-	if(source_gt == 1 && target_gt == 0)
-        return -log10(pa * (1+2*aerr*(1-aerr)));
-	if(source_gt == 1 && target_gt == 1)
-        return -log10(2*pa*pb*(1+2*aerr*(1-aerr)));
-	if(source_gt == 1 && target_gt == 2)
-        return -log10(pb * (1+2*aerr*(1-aerr)));
-	if(source_gt == 2 && target_gt == 0)
-        return log10(((1-aerr)*merr+aerr*(1-merr) + minesp) / pa / (1-aerr*(1-aerr) + minesp));
-	if(source_gt == 2 && target_gt == 1)
-        return log10(0.5*((1-aerr)*(1-merr)+aerr*merr) / pb / (1-aerr*(1-aerr)) + 0.5 * ((1-aerr)*merr+aerr*(1-merr)) / pa / (1-aerr*(1-aerr)));
+        return log10(term1 / pa / denom);
 	if(source_gt == 2 && target_gt == 2)
-        return log10(((1-aerr)*(1-merr)+aerr*merr) / pb / (1-aerr*(1-aerr)));
+        return log10(term1 / pb / denom);
+
+	if(source_gt == 0 && target_gt == 1)
+        return log10(0.5 / denom * (term2 / pb + term1 / pa));
+	if(source_gt == 2 && target_gt == 1)
+        return log10(0.5 / denom * (term1 / pb + term2 / pa));
+
+	if(source_gt == 1 && target_gt == 1)
+        return -log10(2*pa*pb*(3-2*denom));
+
+	if(source_gt == 1 && target_gt == 0)
+        return -log10(pa * (3 - 2 * denom));
+	if(source_gt == 1 && target_gt == 2)
+        return -log10(pb * (3 - 2 * denom));
+
+	if(source_gt == 0 && target_gt == 2)
+        return log10((term2 + minesp) / pb / (denom + minesp));
+	if(source_gt == 2 && target_gt == 0)
+        return log10((term2 + minesp) / pa / (denom + minesp));
+
 	return 0;
 }
 
