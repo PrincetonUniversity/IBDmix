@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <getopt.h>
 
 typedef unsigned long int ulnt;
 
@@ -16,8 +17,8 @@ class VCF_File
         char* blank_line;
         int number_individuals;
         FILE* input;
-        static const int buf_size = 1024;
-        char buffer[buf_size];
+        char* buffer;
+        size_t len;
 
         VCF_File(FILE* in_file, FILE* output)
         {
@@ -25,6 +26,9 @@ class VCF_File
             number_individuals = 0;
             input = in_file;
             char *individual_start = NULL;
+            buffer = NULL;
+            len = 0;
+            chromosome = 0;
             // remove header
             while(fgetc(input) == '#'){
                 // header lines without needed information
@@ -32,30 +36,21 @@ class VCF_File
                     purge_line();
                 // header with column names
                 else{
-                    bool remaining = true;
-                    // if buffer hasn't read entire line
-                    while(remaining){
-                        // fill buffer
-                        fgets(buffer, buf_size-1, input);
-                        for(char *ptr = buffer; *ptr != '\0'; ptr++){
-                            // count individuals, mark location for printing
-                            if(*ptr == '\t'){
-                                number_individuals++;
-                                if(number_individuals > 8 &&
-                                        individual_start == NULL)
-                                    individual_start = ptr;
-                            }
-                            // line is read completely
-                            if(*ptr == '\n'){
-                                remaining = false;
-                                *ptr = '\0';
-                                break;
-                            }
+                    getline(&buffer, &len, input);
+                    for(char *ptr = buffer; *ptr != '\0'; ptr++){
+                        // count individuals, mark location for printing
+                        if(*ptr == '\t'){
+                            number_individuals++;
+                            if(individual_start == NULL &&
+                                    number_individuals > 8)
+                                individual_start = ptr;
                         }
-                        // write individuals to output
-                        fprintf(output, "%s", individual_start);
-                        individual_start = NULL;
+                        if(*ptr == '\n'){
+                            *ptr = '\0';
+                        }
                     }
+                    // write individuals to output
+                    fprintf(output, "%s", individual_start);
                     break;
                 }
             }
@@ -105,43 +100,33 @@ class VCF_File
 
             // discard qual, filter, etc
             fscanf(input, "%*s\t%*s\t%*s\t%*s\t");
-            bool remaining = true;
             // read in genotypes
-            while(remaining){
-                fgets(buffer, buf_size, input);
-                char * ptr = buffer;
-                int ind = 0;
-                while(true){
-                    genotypes[ind] = ptr[0] + ptr[2] - '0';
-                    // ',' = '.' + '.' - '0'
-                    genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
-                    if(skip_non_informative && genotypes[ind] == '9'){
-                        if (strlen(buffer) == buf_size)
-                            purge_line();
-                        return false;
-                    }
-                    //read to next token
-                    ind += 2;
-                    while(*ptr != '\t' && *ptr != '\n' && *ptr != '\0'){
-                        ptr++;
-                    }
-                    // end of line, break out of outer while loop
-                    if(*ptr == '\n'){
-                        remaining = false;
-                        break;
-                    }
-                    // end of buffer, break out of inner while loop
-                    if(*ptr == '\0')
-                        break;
+            getline(&buffer, &len, input);
+            int ind = 0;
+            char * ptr = buffer;
+            while(true){
+                genotypes[ind] = ptr[0] + ptr[2] - '0';
+                // ',' = '.' + '.' - '0'
+                genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
+                if(skip_non_informative && genotypes[ind] == '9')
+                    return false;
+                //read to next token
+                ind += 2;
+                while(*ptr != '\t' && *ptr != '\0'){
                     ptr++;
                 }
+                if(*ptr == '\0')
+                    break;
+                ptr++;
             }
             return true;
         }
 
         ~VCF_File(){
-            delete blank_line;
-            delete genotypes;
+            delete []blank_line;
+            delete []genotypes;
+            if (buffer)
+                free(buffer);
             fclose(input);
         }
 };
@@ -153,7 +138,12 @@ int main(int argc, char *argv[])
 
     archaic_vcf = modern_vcf = output = NULL;
     // read in arguments
-    while ((c = getopt(argc, argv, "a:o:m:")) != -1) {
+    const option long_opts[] = {
+        {"archaic", required_argument, nullptr, 'a'},
+        {"modern", required_argument, nullptr, 'm'},
+        {"output", required_argument, nullptr, 'o'},
+    };
+    while ((c = getopt_long(argc, argv, "a:o:m:", long_opts, nullptr)) != -1) {
         switch (c) {
             case 'a': archaic_vcf = fopen(optarg, "r"); break;
             case 'm': modern_vcf = fopen(optarg, "r"); break;
