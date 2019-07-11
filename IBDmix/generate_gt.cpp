@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <iostream>
 
 typedef unsigned long int ulnt;
 
@@ -131,6 +132,14 @@ class VCF_File
         }
 };
 
+void print_options(void){
+    std::cout << "--------------------------OPTIONS--------------------------\n"
+    << "  -h, --help:       print help and exit\n"
+    << "  -a, --archaic:    the archaic vcf file, uncompressed\n"
+    << "  -m, --modern:     the modern vcf file, uncompressed\n"
+    << "  -o, --output:     the merged, genotype file, uncompressed\n";
+}
+
 int main(int argc, char *argv[])
 {
     FILE * archaic_vcf, * modern_vcf, * output;
@@ -139,12 +148,18 @@ int main(int argc, char *argv[])
     archaic_vcf = modern_vcf = output = NULL;
     // read in arguments
     const option long_opts[] = {
+        {"help", no_argument, nullptr, 'h'},
         {"archaic", required_argument, nullptr, 'a'},
         {"modern", required_argument, nullptr, 'm'},
         {"output", required_argument, nullptr, 'o'},
     };
-    while ((c = getopt_long(argc, argv, "a:o:m:", long_opts, nullptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "ha:o:m:", long_opts, nullptr)) != -1) {
         switch (c) {
+            case 'h':
+                std::cout << "Usage " << argv[0]
+                    << " -a <archaic file> -m <modern file> -o <output file>\n";
+                print_options();
+                return 0;
             case 'a': archaic_vcf = fopen(optarg, "r"); break;
             case 'm': modern_vcf = fopen(optarg, "r"); break;
             case 'o': output = fopen(optarg, "w"); break;
@@ -154,14 +169,17 @@ int main(int argc, char *argv[])
     // error if any unset
     if (archaic_vcf == NULL){
         printf("Missing archaic vcf file input. Please provide valid '-a'\n");
+        print_options();
         exit(1);
     }
     if (output == NULL){
         printf("Missing output. Please provide '-o'\n");
+        print_options();
         exit(1);
     }
     if (modern_vcf == NULL){
         printf("Missing modern vcf file input. Please provide valid '-m'\n");
+        print_options();
         exit(1);
     }
 

@@ -1,16 +1,14 @@
 #include <iostream>
 #include <string.h>
-#include <stdio.h>
 #include "IBD_Segment.hpp"
 #include "IBD_Stack.hpp"
 
-IBD_Segment::IBD_Segment(const char *segment_name, int chromosome, double threshold){
+IBD_Segment::IBD_Segment(const char *segment_name, double threshold){
     // NOTE!! start and end refer to the segment, not the stack
     // The stack grows nearest end, start is nearest to bottom
     start = end = top = nullptr;
     name = new char[strlen(segment_name)];
     strcpy(name, segment_name);
-    chrom = chromosome;
     thresh = threshold;
 }
 
@@ -19,14 +17,13 @@ IBD_Segment::~IBD_Segment(){
     reclaim_all(top);
 }
 
-void IBD_Segment::add_lod(unsigned long int position, double lod, char *output){
-    // note, output needs to be a member function to keep track of where
-    // the current output is between calls of add_node
-    this->output = output;
-    add_node(get_node(position, lod));
+void IBD_Segment::add_lod(int chromosome, unsigned long int position,
+        double lod, FILE *output){
+    chrom = chromosome;
+    add_node(get_node(position, lod), output);
 }
 
-void IBD_Segment::add_node(struct IBD_Node *new_node){
+void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
     // ignore negative lod as first entry
     if(top == nullptr && new_node->lod < 0){
         reclaim_node(new_node);
@@ -50,9 +47,9 @@ void IBD_Segment::add_node(struct IBD_Node *new_node){
     }
 
     if(top->cumulative_lod < 0){
-        // write output, move pointer by size
+        // write output
         if(end->cumulative_lod >= thresh)
-            output += sprintf(output, "%s\t%d\t%lu\t%lu\t%g\n",
+            fprintf(output, "%s\t%d\t%lu\t%lu\t%g\n",
                     name, chrom, start->position,
                     end->position, end->cumulative_lod);
         // reverse list to reprocess remaining nodes
@@ -64,7 +61,7 @@ void IBD_Segment::add_node(struct IBD_Node *new_node){
         // reset member variables to process reversed
         top = start = end = nullptr;
         while(reversed != nullptr)
-            add_node(pop(reversed));
+            add_node(pop(reversed), output);
     }
 }
 
