@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string.h>
+#include <limits>
 #include "IBD_Segment.hpp"
 #include "IBD_Stack.hpp"
 
@@ -21,6 +22,11 @@ void IBD_Segment::add_lod(int chromosome, unsigned long int position,
         double lod, FILE *output){
     chrom = chromosome;
     add_node(get_node(position, lod), output);
+}
+
+void IBD_Segment::purge(FILE *output){
+    add_node(get_node(-1, -std::numeric_limits<double>::infinity()),
+            output);
 }
 
 void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
@@ -48,10 +54,20 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
 
     if(top->cumulative_lod < 0){
         // write output
-        if(end->cumulative_lod >= thresh)
+        if(end->cumulative_lod >= thresh){
+            // TODO this is slow and bad to match legacy, probably change
+            unsigned long int pos = end->position;
+            if(end != top){
+                //find previous node 'above' top
+                struct IBD_Node * ptr = top;
+                for(; ptr->next != end; ptr=ptr->next);
+                if(ptr->lod != -std::numeric_limits<double>::infinity())
+                    pos = ptr->position;
+            }
             fprintf(output, "%s\t%d\t%lu\t%lu\t%g\n",
                     name, chrom, start->position,
-                    end->position, end->cumulative_lod);
+                    pos, end->cumulative_lod);
+        }
         // reverse list to reprocess remaining nodes
         top = reverse(top);
         // skip from top to end
@@ -61,7 +77,7 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
         // reset member variables to process reversed
         top = start = end = nullptr;
         while(reversed != nullptr)
-            add_node(pop(reversed), output);
+            add_node(pop(reversed));
     }
 }
 
