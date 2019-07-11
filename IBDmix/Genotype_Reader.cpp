@@ -45,7 +45,7 @@ Genotype_Reader::~Genotype_Reader(){
     delete []lod_cache;
 }
 
-int Genotype_Reader::initialize_arrays(FILE * samples, const char * archaic){
+int Genotype_Reader::initialize(FILE * samples, const char * archaic){
     // using samples list and header line, determine number of samples
     // and mapping from position to sample number
     int result = 0;
