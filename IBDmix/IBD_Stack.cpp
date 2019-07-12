@@ -1,19 +1,28 @@
 #include <iostream>
 #include <stdlib.h>
+#include <vector>
 #include "IBD_Stack.hpp"
 
 struct IBD_Node* pool = nullptr;
-int buff_size = 10;
+std::vector<struct IBD_Node*> alloc_ptrs;
+int buff_size = 1024;
 
 void allocate(int buffer_size){
     // assumes only called when pool is nullptr
-    struct IBD_Node* temp = (struct IBD_Node*) malloc(
+    struct IBD_Node* allocation = (struct IBD_Node*) malloc(
             sizeof(struct IBD_Node) * buffer_size);
-    pool = temp;
+    pool = allocation;
     for (int i = 0; i < buffer_size; i++){
-        temp[i].next = &temp[i+1];
+        allocation[i].next = &allocation[i+1];
     }
-    temp[buffer_size-1].next = nullptr;
+    allocation[buffer_size-1].next = nullptr;
+    alloc_ptrs.push_back(allocation);
+    buffer_size *= 2;  // allocate more next time to prevent repeated calls
+}
+
+void free_stack(){
+    for (auto &ptr : alloc_ptrs)
+        free(ptr);
 }
 
 struct IBD_Node* get_node(unsigned long int position, double lod){

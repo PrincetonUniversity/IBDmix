@@ -12,7 +12,7 @@ class IBD_Collection{
     public:
         IBD_Collection();
         void initialize(int num_samples, double threshold,
-                Genotype_Reader reader);
-        // TODO change output to file after unit testing is "done"
-        void update(Genotype_Reader reader, FILE * output);
+                Genotype_Reader &reader);
+        void update(Genotype_Reader &reader, FILE * output);
+        void purge(FILE * output);
 };

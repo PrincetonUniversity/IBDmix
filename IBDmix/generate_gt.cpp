@@ -55,6 +55,11 @@ class VCF_File
                     break;
                 }
             }
+            if(number_individuals <= 8){
+                printf("Ill-formed file, unable to parse header\n");
+                exit(1);
+            }
+
             number_individuals -= 8; //remove other columns
             // note: because we count tabs above, we subtract 8 (instead of 9)
             // as the last column has a newline instead of a tab
@@ -160,9 +165,15 @@ int main(int argc, char *argv[])
                     << " -a <archaic file> -m <modern file> -o <output file>\n";
                 print_options();
                 return 0;
-            case 'a': archaic_vcf = fopen(optarg, "r"); break;
-            case 'm': modern_vcf = fopen(optarg, "r"); break;
-            case 'o': output = fopen(optarg, "w"); break;
+            case 'a':
+                archaic_vcf = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "r");
+                break;
+            case 'm':
+                modern_vcf = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "r");
+                break;
+            case 'o':
+                output = strcmp(optarg, "-") == 0 ? stdout : fopen(optarg, "w");
+                break;
         }
     }
 
@@ -199,7 +210,7 @@ int main(int argc, char *argv[])
         while(recheck || archaic.update(true)){
             recheck = false;
 
-            //less than position, copy archaic and use modern blankline
+            //less than position, copy archaic and use modern blank line
             if(archaic.position < modern.position)
             {
                 // skip lines with no informative archaic GT
@@ -227,6 +238,7 @@ int main(int argc, char *argv[])
             else if(archaic.position == modern.position)
             {
                 // check alleles are matching
+                // TODO add in some check if the modern failed update (so change that too!)
                 if (archaic.reference == modern.reference &&
                         (archaic.alternative == '.' ||
                          archaic.alternative == modern.alternative))
@@ -239,7 +251,7 @@ int main(int argc, char *argv[])
                     fprintf(output, "%s", archaic.genotypes);
                     fprintf(output, "%s", modern.genotypes);
                     fprintf(output, "\n");
-                    break;
+                    break;  // TODO once matching, is this necessary?
                 }
                 // advance both to match legacy version
                 break;

@@ -1,8 +1,10 @@
 #include <getopt.h>
 #include <iostream>
 #include <string.h>
+#include <stdio.h>
 #include "IBD_Collection.hpp"
 #include "Genotype_Reader.hpp"
+#include "IBD_Stack.hpp"
 
 void print_options(void){
     std::cout << "--------------------------OPTIONS--------------------------\n"
@@ -85,13 +87,19 @@ int main(int argc, char *argv[]){
                     << " -c <modern error proportion>\n";
                 print_options();
                 return 0;
-            case 'g': genotype = fopen(optarg, "r"); break;
-            case 'o': output = fopen(optarg, "w"); break;
-            case 's': sample = fopen(optarg, "r"); break;
+            case 'g': 
+                genotype = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "r");
+                break;
+            case 'o':
+                output = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "w");
+                break;
+            case 's':
+                sample = strcmp(optarg, "-") == 0 ? stdout : fopen(optarg, "r");
+                break;
             case 'n':
-                      archaic = new char[strlen(optarg)];
-                      strcpy(archaic, optarg);
-                      break;
+                archaic = new char[strlen(optarg)];
+                strcpy(archaic, optarg);
+                break;
             case 'r': mask = fopen(optarg, "r"); break;
             case 'd': LOD_threshold = atof(optarg); break;
             case 'm': ma_threshold = atoi(optarg); break;
@@ -121,8 +129,10 @@ int main(int argc, char *argv[]){
             1e-200,  // minesp
             ma_threshold);
     int num_samples = reader.initialize(sample, archaic);
+    if(sample != nullptr)
+        fclose(sample);
 
-    IBD_Collection ibds = IBD_Collection();
+    IBD_Collection ibds;
     ibds.initialize(
             num_samples,
             LOD_threshold,
@@ -132,6 +142,16 @@ int main(int argc, char *argv[]){
         ibds.update(reader, output);
     //TODO write tests, acceptance on real data
 
+    ibds.purge(output);
+
     if (archaic != nullptr)
         free(archaic);
+    if(genotype != nullptr)
+        fclose(genotype);
+    if(mask != nullptr)
+        fclose(mask);
+    if(output != nullptr)
+        fclose(output);
+
+    free_stack();
 }

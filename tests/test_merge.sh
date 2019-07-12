@@ -1,31 +1,26 @@
-MOD_INPUT_FILE=/tigress/tcomi/ibdmix_temp/mod.vcf
-ARCH_INPUT_FILE=/tigress/tcomi/ibdmix_temp/arch.vcf
-CPP_OUT=/tigress/tcomi/ibdmix_temp/cpp.txt
-CPP_OUT2=/tigress/tcomi/ibdmix_temp/cpp2.txt
-PY_OUT="/tigress/tcomi/ibdmix_temp/py_*.txt"
-PY_OUT2=/tigress/tcomi/ibdmix_temp/py.txt
+#!/usr/bin/bash
 
-# module load anaconda3
-# conda activate IBDmix
-# 
-# cd ../IBDmix
-# 
-# time python IBDmix.py merge-genotype \
-#     --modern-vcf $MOD_INPUT_FILE \
-#     --archaic-vcf $ARCH_INPUT_FILE \
-#     --output "$PY_OUT"
-# cd -
-# # combine outputs from python, stripping header, moving columns, adding extra tab
-# ls /tigress/tcomi/ibdmix_temp/py_*.txt | xargs tail -q -n +2 | \
-#     awk -F'\t' '{ t = $1; $1 = $2; $2 = t; print $0, "";}' OFS=$'\t' \
-#     > $PY_OUT2
+MOD_INPUT_FILE=/tigress/AKEY/akey_vol2/wqfu/nobackup/1KGP/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
+original_out=/tigress/AKEY/akey_vol1/home/luchenuw/data/VCFs/Merged_Archaic_1KGP3/2013pubAltai/Altai_1KGP3_chr1.txt
+ARCH_INPUT_FILE=/tigress/limingli/data/old-Altai/gz/chr1.vcf.gz
+CPP_OUT2=/tigress/tcomi/ibdmix_temp/alti_1kg.gz
+
 
 #/usr/bin/time -v bash -c "cat $MOD_INPUT_FILE | ./mergeVCF -a $ARCH_INPUT_FILE -l $(wc -l <$ARCH_INPUT_FILE) -d 1 -n 279 -o $CPP_OUT"
 #mv gmon.out gmon_old.out
 g++ -std=c++11 IBDmix/generate_gt.cpp -o tests/generate_gt
-/usr/bin/time -v bash -c "tests/generate_gt -a $ARCH_INPUT_FILE -m $MOD_INPUT_FILE -o $CPP_OUT2"
-#valgrind tests/generate_gt -a $ARCH_INPUT_FILE -m $MOD_INPUT_FILE -o $CPP_OUT2
-
+tests/generate_gt \
+    -a <(zcat $ARCH_INPUT_FILE | head -1000) \
+    -m <(zcat $MOD_INPUT_FILE | head -1000) \
+    -o - | gzip > $CPP_OUT2
+line=$(cmp <(zcat $CPP_OUT2 | tail -n +2) $original_out | awk '{print $NF}')
+if [ ! -z $line ]; then
+    awk -v line=$line 'NR==line{print "Expected: "$1, $2, $3, $4, $5; exit}' "$original_out"
+    zcat $CPP_OUT2 | awk -v line=$line 'NR==line+1{print "Actual: "$1, $2, $3, $4, $5; exit}'
+else
+    echo "Matching!"
+fi
+exit
 
 EX=$CPP_OUT
 ACT=${CPP_OUT2}.tail

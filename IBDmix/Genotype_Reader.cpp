@@ -30,10 +30,6 @@ Genotype_Reader::Genotype_Reader(FILE * genotype, FILE * mask,
 }
 
 Genotype_Reader::~Genotype_Reader(){
-    if(genotype != nullptr)
-        fclose(genotype);
-    if(mask != nullptr)
-        fclose(mask);
     if(buffer)
         free(buffer);
     if(samples && samples != buffer)  // can equal if buffer is unused
@@ -84,9 +80,6 @@ int Genotype_Reader::initialize(FILE * samples, const char * archaic){
     determine_sample_mapping(sample_line);
 
     lod_scores = new double[result];
-    if(samples != nullptr){
-        fclose(samples);
-    }
     return result;
 }
 
