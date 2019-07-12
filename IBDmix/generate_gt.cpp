@@ -20,6 +20,7 @@ class VCF_File
         FILE* input;
         char* buffer;
         size_t len;
+        bool isvalid;
 
         VCF_File(FILE* in_file, FILE* output)
         {
@@ -87,6 +88,7 @@ class VCF_File
         }
 
         bool read_line(bool skip_non_informative=false){
+            isvalid = true;
             if(fscanf(input, "%i\t%lu\t%*s\t", &chromosome, &position) == EOF){
                 chromosome = -1;
                 return false;
@@ -96,12 +98,14 @@ class VCF_File
             reference = fgetc(input);
             if (fgetc(input) != '\t'){
                 purge_line();
-                return false;
+                isvalid = false;
+                return !skip_non_informative;  // this will allow checks if not skipping
             }
             alternative = fgetc(input);
             if (fgetc(input) != '\t'){
                 purge_line();
-                return false;
+                isvalid = false;
+                return !skip_non_informative;
             }
 
             // discard qual, filter, etc
@@ -110,12 +114,13 @@ class VCF_File
             getline(&buffer, &len, input);
             int ind = 0;
             char * ptr = buffer;
+            bool none_valid = true;
             while(true){
                 genotypes[ind] = ptr[0] + ptr[2] - '0';
                 // ',' = '.' + '.' - '0'
                 genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
-                if(skip_non_informative && genotypes[ind] == '9')
-                    return false;
+                if(none_valid && genotypes[ind] != '9')
+                    none_valid = false;
                 //read to next token
                 ind += 2;
                 while(*ptr != '\t' && *ptr != '\0'){
@@ -125,7 +130,9 @@ class VCF_File
                     break;
                 ptr++;
             }
-            return true;
+            // return true of skip is false or
+            // if skip is false but at least one informative found
+            return !skip_non_informative || !none_valid;
         }
 
         ~VCF_File(){
@@ -238,8 +245,7 @@ int main(int argc, char *argv[])
             else if(archaic.position == modern.position)
             {
                 // check alleles are matching
-                // TODO add in some check if the modern failed update (so change that too!)
-                if (archaic.reference == modern.reference &&
+                if (modern.isvalid && archaic.reference == modern.reference &&
                         (archaic.alternative == '.' ||
                          archaic.alternative == modern.alternative))
                 {
