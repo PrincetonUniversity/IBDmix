@@ -78,7 +78,7 @@ double calLOD_segment(double *lod, ulnt start, ulnt end){
     return cumsum;
 }
 
-int main_ibd(int argc, char *argv[]){
+int main(int argc, char *argv[]){
     ulnt Lnum,*pos,posi[2],prel;
     int c, chr, chro, Anum, Indnum, Inum, eInum, IBDnum, *sel, *indsel, **mgt, **agt, mafcut=1;
     double acerr=0.01, mderr=0.0025, mderrprop=2, *obsf, *err, **lod, threlod=3, tp, maxlod;

@@ -6,6 +6,7 @@ struct IBD_Node {
     struct IBD_Node *next;
 };
 void allocate(int buffer_size);
+void free_stack(void);
 struct IBD_Node* get_node(unsigned long int position, double lod=0);
 void push(struct IBD_Node *& top, struct IBD_Node * new_node);
 struct IBD_Node * pop(struct IBD_Node *& top);

@@ -8,14 +8,13 @@ IBD_Segment::IBD_Segment(const char *segment_name, double threshold){
     // NOTE!! start and end refer to the segment, not the stack
     // The stack grows nearest end, start is nearest to bottom
     start = end = top = nullptr;
-    name = new char[strlen(segment_name)];
+    name = new char[strlen(segment_name)+1];
     strcpy(name, segment_name);
     thresh = threshold;
 }
 
 IBD_Segment::~IBD_Segment(){
-    delete name;
-    reclaim_all(top);
+    delete[] name;
 }
 
 void IBD_Segment::add_lod(int chromosome, unsigned long int position,
@@ -77,7 +76,7 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
         // reset member variables to process reversed
         top = start = end = nullptr;
         while(reversed != nullptr)
-            add_node(pop(reversed));
+            add_node(pop(reversed), output);
     }
 }
 

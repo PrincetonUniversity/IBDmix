@@ -7,7 +7,7 @@ IBD_Collection::IBD_Collection(){
 }
 
 void IBD_Collection::initialize(int num_samples, double threshold,
-        Genotype_Reader reader){
+        Genotype_Reader &reader){
     this->num_samples = num_samples;
     IBDs.reserve(num_samples);
     char *sample;
@@ -17,11 +17,16 @@ void IBD_Collection::initialize(int num_samples, double threshold,
     }
 }
 
-void IBD_Collection::update(Genotype_Reader reader, FILE * output){
+void IBD_Collection::update(Genotype_Reader &reader, FILE * output){
     for(int i = 0; i < num_samples; i++){
         IBDs[i].add_lod(reader.chromosome,
                 reader.position,
                 reader.lod_scores[i],
                 output);
     }
+}
+
+void IBD_Collection::purge(FILE * output){
+    for(int i = 0; i < num_samples; i++)
+        IBDs[i].purge(output);
 }
