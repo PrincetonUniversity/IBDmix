@@ -12,7 +12,7 @@ CPP_OUT2=/tigress/tcomi/ibdmix_temp/alti_1kg.gz
 g++ -std=c++11 IBDmix/generate_gt.cpp -o tests/generate_gt
 
     #-a <(zcat $ARCH_INPUT_FILE | head -100000) \
-for chr in {1..22}; do
+for chr in {1..20}; do
     echo "starting on $chr"
     line=$(cmp <(tests/generate_gt \
         -a <(zcat ${ARCH_INPUT_FILE}${chr}.vcf.gz) \

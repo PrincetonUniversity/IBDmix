@@ -10,6 +10,11 @@ set -euo pipefail
 #    -o tests/segment -lboost_system -lboost_thread -lboost_unit_test_framework
 #tests/segment
 #
+g++ IBDmix/IBD_Stack.cpp IBDmix/IBD_Segment.cpp tests/test_IBD_segment_single.cpp \
+    -std=c++11 \
+    -o tests/single -lboost_system -lboost_thread -lboost_unit_test_framework
+tests/single
+
 #g++ IBDmix/Genotype_Reader.cpp tests/test_Genotype_Reader.cpp \
 #    -std=c++11 -g -O0 \
 #    -o tests/reader -lboost_system -lboost_thread -lboost_unit_test_framework

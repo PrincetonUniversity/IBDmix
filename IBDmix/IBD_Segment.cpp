@@ -24,8 +24,28 @@ void IBD_Segment::add_lod(int chromosome, unsigned long int position,
 }
 
 void IBD_Segment::purge(FILE *output){
-    add_node(get_node(-1, -std::numeric_limits<double>::infinity()),
-            output);
+    // TODO legacy version only includes the last segment, not all
+    // IS THIS CORRECT?
+    // add_node(get_node(-1, -std::numeric_limits<double>::infinity()),
+    //         output);
+    // return;
+    if(top != nullptr){
+        if(end->cumulative_lod >= thresh){
+            // TODO this is slow and bad to match legacy, probably change
+            unsigned long int pos = end->position;
+            if(end != top){
+                //find previous node 'above' top
+                struct IBD_Node * ptr = top;
+                for(; ptr->next != end; ptr=ptr->next);
+                if(ptr->lod != -std::numeric_limits<double>::infinity())
+                    pos = ptr->position;
+            }
+            fprintf(output, "%s\t%d\t%lu\t%lu\t%g\n",
+                    name, chrom, start->position,
+                    pos, end->cumulative_lod);
+        }
+        reclaim_all(top);
+    }
 }
 
 void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){

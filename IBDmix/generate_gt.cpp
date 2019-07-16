@@ -257,7 +257,6 @@ int main(int argc, char *argv[])
                     fprintf(output, "%s", archaic.genotypes);
                     fprintf(output, "%s", modern.genotypes);
                     fprintf(output, "\n");
-                    break;  // TODO once matching, is this necessary?
                 }
                 // advance both to match legacy version
                 break;
