@@ -140,7 +140,6 @@ int main(int argc, char *argv[]){
 
     while(reader.update())
         ibds.update(reader, output);
-    //TODO write tests, acceptance on real data
 
     ibds.purge(output);
 
