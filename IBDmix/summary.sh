@@ -23,18 +23,21 @@ if [[ $# -eq 4 ]]; then  # use inputs
     fi
 fi
 
-awk -v length_cutoff=$length -v lod_cutoff=$lod -F '\t' '{
+awk -v length_cutoff=$length -v lod_cutoff=$lod -v OFS='\t' '
+NR == 1{
     if($1 == "ID"){
         print $0, "length"
+        next
     }
     else{
-        len = $4 - $3
-        lod = $6
-        if(len > length_cutoff && lod > lod_cutoff){
-            print $0, len
-        }
+        print "ID", "chr", "start", "end", "LOD", "length"
     }
-}' $infile | sort \
-    --key=1,1 \
-    --key=3n,3 \
-    > $outfile
+}
+{
+    len = $4 - $3
+    lod = $6
+    if(len > length_cutoff && lod > lod_cutoff){
+        print $0, len | "sort --key=1,1 --key=3n,3"
+    }
+}
+' $infile > $outfile
