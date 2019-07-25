@@ -21,7 +21,7 @@ paths:
     ibd_summary: "/tigress/tcomi/ibdmix_temp/ibd_summary/\
                   altai_1kg_{population}_{chrom}_{LOD}_{length}.gz"
 
-IBD:
+IBDmix:
     # can also include name of archaic
     options: >
         --LOD-threshold 3.0
