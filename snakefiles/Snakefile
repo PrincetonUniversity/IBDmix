@@ -17,10 +17,10 @@ def all_input(wildcards):
     params = {'chrom': chromosomes}
     path = paths['ibd_output']
 
-    if 'summary_lod' in config['IBD']:
+    if 'summary_lod' in config['IBDmix']:
         path = paths['ibd_summary']
-        params['LOD'] = config['IBD']['summary_lod']
-        params['length'] = config['IBD']['summary_length']
+        params['LOD'] = config['IBDmix']['summary_lod']
+        params['length'] = config['IBDmix']['summary_length']
 
     if '{population}' in path:
         params['population'] = populations
@@ -48,7 +48,7 @@ rule generate_gt:
         exe=paths['exe_root'].format(exe='generate_gt')
 
     output:
-        paths['genotype_file']
+        temp(paths['genotype_file'])
 
     threads: 3
 
@@ -93,9 +93,11 @@ def get_ibd_options(wildcards, input):
     return result
 
 rule ibdmix:
-    input: unpack(get_ibd_input)
+    input:
+        unpack(get_ibd_input)
 
-    output: paths['ibd_output']
+    output:
+        temp(paths['ibd_output'])
 
     params: options=get_ibd_options
 
@@ -105,7 +107,8 @@ rule ibdmix:
         '{input.exe} '
             '--genotype <(zcat {input.genotype}) '
             '--output >(gzip > {output}) '
-            '{params.options}'
+            '{params.options} '
+            '{config[IBDmix][options]} '
 
 rule summary:
     input:
