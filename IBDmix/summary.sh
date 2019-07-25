@@ -35,7 +35,7 @@ NR == 1{
 }
 {
     len = $4 - $3
-    lod = $6
+    lod = $5
     if(len > length_cutoff && lod > lod_cutoff){
         print $0, len | "sort --key=1,1 --key=3n,3"
     }
