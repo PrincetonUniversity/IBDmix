@@ -18,9 +18,6 @@ if len(populations) == 0:
     paths['ibd_output'] = paths['ibd_output'].replace('{population}', 'ALL')
     paths['ibd_summary'] = paths['ibd_summary'].replace('{population}', 'ALL')
 
-chromosomes = chromosomes[-2:]
-populations = populations[0:2]
-
 def all_input(wildcards):
     params = {'chrom': chromosomes}
     path = paths['ibd_output']
