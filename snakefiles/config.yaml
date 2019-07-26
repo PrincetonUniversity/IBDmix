@@ -3,43 +3,43 @@ compiler: "g++"
 compiler_options: "-std=c++11"
 
 paths:
-    exe_root: /home/tcomi/projects/IBDmix/exe/{exe}
-    source_root: /home/tcomi/projects/IBDmix/IBDmix/
+    exe_root: /tigress/AKEY/akey_vol1/home/luchenuw/IBDmix/exe/{exe}
+    source_root: /tigress/AKEY/akey_vol1/home/luchenuw/IBDmix/IBDmix/
     modern_vcf: "/tigress/AKEY/akey_vol2/wqfu/nobackup/1KGP/\
                  ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5a\
                  .20130502.genotypes.vcf.gz"
     archaic_vcf: /tigress/limingli/data/old-Altai/gz/chr{chrom}.vcf.gz
-    genotype_file: /tigress/tcomi/ibdmix_temp/altai_1kg_{chrom}.gz
     # if removed will use all samples
     sample_file: /tigress/tcomi/ibdmix_temp/populations/{population}.txt
     # if removed will use all positions
     mask_file: "/tigress/AKEY/akey_vol1/home/luchenuw/data/FilterBed/\
                 FullVersionforAltai2013_1KGP3strict/\
                 Altai2013_1KGP3strict.mask.chr{chrom}.bed"
-    ibd_output: "/tigress/tcomi/ibdmix_temp/ibd_raw/\
-                 altai_1kg_{population}_{chrom}.gz"
-    ibd_summary: "/tigress/tcomi/ibdmix_temp/ibd_summary/\
-                  altai_1kg_{population}_{chrom}_{LOD}_{length}.gz"
+    output_root: "/tigress/tcomi/ibdmix_temp"
+    sample_name: "altai_1kg"
+    genotype_file: "{output_root}/altai_1kg_{chrom}.gz"
+    ibd_output: "{output_root}/ibd_raw/\
+                 {sample_name}_{population}_{chrom}.gz"
+    ibd_summary: "{output_root}/ibd_summary/\
+                  {sample_name}_{population}_{chrom}_{LOD}_{length}.txt"
 
 IBDmix:
     # can also include name of archaic
     options: >
         --LOD-threshold 3.0
-        --minor-allel-count-threshold 1
+        --minor-allele-count-threshold 1
         --archaic-error 0.01
-        --modern-error-max 0.0025
+        --modern-error-max 0.002
         --modern-error-proportion 2
 
     # remove for no summary, add 0s for no filtering
     summary_lod:
-        - 0
         - 4
-        - 5
 
     summary_length:
-        - 0
-        - 1000
-        - 2000
+        - 30000
+        - 50000
+        - 100000
 
 #   -g, --genotype:   input genotype file for one chromosome
 #                       REQUIRED

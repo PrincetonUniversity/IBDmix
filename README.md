@@ -37,56 +37,64 @@ requires no compilation.
 ### Usage Details
 #### Generate Genotype
 `generate_gt` has the following options:
-- __-h, --help__:    Print the help information and exit.
-- __-a, --archaic__: The archaic vcf file.  May contain multiple
-                 archaic samples but only one will be utilized for IBDmix.
-                 Must be uncompressed text.
-- __-m, --modern__:  The modern vcf file. Must be uncompressed text.
-- __-o, --output__:  The merged genotype file output.  Written as uncompressed
-                 text.
+- __-h, --help__
+Print the help information and exit.
+- __-a, --archaic__
+The archaic vcf file.  May contain multiple
+archaic samples but only one will be utilized for IBDmix.
+Must be uncompressed text.
+- __-m, --modern__
+The modern vcf file. Must be uncompressed text.
+- __-o, --output__
+The merged genotype file output.  Written as uncompressed text.
 All files must be specified to run.
 
 #### IBDmix
 `ibdmix` takes the following options:
-- __-h, --help__:       Print the help information and exit.
-- __-g, --genotype__:   The input genotype file produced by `generate_gt`.
+- __-h, --help__
+Print the help information and exit.
+- __-g, --genotype__
+The input genotype file produced by `generate_gt`.
                         Required.
-- __-o, --output__:     The output file.  Format is tab-delimited text with
-                        columns for individual ID, chromosome, start, end, 
-                        and LOD score.  The regions are half open with [start,
-                        end), where the end position is the next position in
-                        the input genotype file. Required.
-- __-s, --sample__:     File specifying which samples to consider.  One
-                        individual per line, must match header in genotype
-                        file exactly.  If not specified all samples will be
-                        utilized (all columns *except* archaic).
-- __-n, --archaic__:    Name of archaic individual.  Must match column name.
-                        If not specified, taken as the first column of the
-                        genotype file (default output order for `generate_gt`).
-- __-r, --mask__:       Bed file of masked regions.  If not specified all sites
-                        are considered.
-- __-d, --LOD-threahold__:       
-                        Threshold value of log(odds) for emitting regions.
-                        Default: 3.0
-- __-m, --minor-allele-count-threshold__:       
-                        Threshold count for filtering minor alleles.  For
-                        each site, the number of occurances in the sample 
-                        population is tabulated.  If fewer than this count
-                        are found, the LOD score for the site is taken as 0.
-                        Default: 1
-- __-a, --archaic-error__:       
-                        Allele error rate for archaic DNA.
-                        Default: 0.01
-- __-e, --modern-error-max__:       
-                        Maximum allele error rate for modern humans.
-                        Default: 0.0025
-- __-c, --modern-error-proportion__:       
-                        Ratio between allele error rate and minor allele
-                        frequency for modern humans.  The error rate for a
-                        given site is taken as the minimum of the `-e` option
-                        and the product of this value with the allele
-                        frequency.
-                        Defualt: 2
+- __-o, --output__
+The output file.  Format is tab-delimited text with
+columns for individual ID, chromosome, start, end, 
+and LOD score.  The regions are half open with \[start,
+end), where the end position is the next position in
+the input genotype file. Required.
+- __-s, --sample__
+File specifying which samples to consider.  One
+individual per line, must match header in genotype
+file exactly.  If not specified all samples will be
+utilized (all columns *except* archaic).
+- __-n, --archaic__
+Name of archaic individual.  Must match column name.
+If not specified, taken as the first column of the
+genotype file (default output order for `generate_gt`).
+- __-r, --mask__
+Bed file of masked regions.  If not specified all sites are considered.
+- __-d, --LOD-threahold__
+Threshold value of log(odds) for emitting regions.
+Default: 3.0
+- __-m, --minor-allele-count-threshold__       
+Threshold count for filtering minor alleles.  For
+each site, the number of occurrences in the sample 
+population is tabulated.  If fewer than this count
+are found, the LOD score for the site is taken as 0.
+Default: 1
+- __-a, --archaic-error__
+Allele error rate for archaic DNA.
+Default: 0.01
+- __-e, --modern-error-max__
+Maximum allele error rate for modern humans.
+Default: 0.0025
+- __-c, --modern-error-proportion__
+Ratio between allele error rate and minor allele
+frequency for modern humans.  The error rate for a
+given site is taken as the minimum of the `-e` option
+and the product of this value with the allele
+frequency.
+Default: 2
 
 #### Summary
 Once a run of `ibdmix` completes, it is informative to filter the results
@@ -94,12 +102,16 @@ on a range of LOD values and length cutoffs.  It is faster to perform this
 operation on the `ibdmix` output than to rerun with different options.
 
 `summary.sh` takes up to four options in order:
-- length cutoff:        The minimum length to emit a region. Use 0 for all.
-- LOD cutoff:           The minimum LOD score to emit a region. Use 0 for all.
-- input:                Optional, the uncompressed input file.
-- output:               Optional, the uncompressed output file. Contains only
-                        the regions passing both filters, sorted by ID then
-                        start position of the region.
+- __length cutoff__
+The minimum length to emit a region. Use 0 for all.
+- __LOD cutoff__
+The minimum LOD score to emit a region. Use 0 for all.
+- __input__
+Optional, the uncompressed input file.
+- __output__
+Optional, the uncompressed output file. Contains only
+the regions passing both filters, sorted by ID then
+start position of the region.
 
 If neither input nor output is specified, standard input and output are 
 utilized.  To specify only one value, use `-` to indicate standard 

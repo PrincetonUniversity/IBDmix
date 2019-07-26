@@ -2,6 +2,14 @@ configfile: 'config.yaml'
 
 chromosomes = list(range(1,23))
 paths = config['paths']
+# substituted wildcards
+yaml_wildcards = ['output_root', 'sample_name']
+for wild in yaml_wildcards:
+    for key, filename in paths.items():
+        fmt = f'{{{wild}}}'
+        if fmt in filename:
+            paths[key] = filename.replace(fmt, paths[wild])
+
 populations = []
 if 'sample_file' in paths:
     populations = glob_wildcards(paths['sample_file']).population
@@ -9,6 +17,9 @@ if 'sample_file' in paths:
 if len(populations) == 0:
     paths['ibd_output'] = paths['ibd_output'].replace('{population}', 'ALL')
     paths['ibd_summary'] = paths['ibd_summary'].replace('{population}', 'ALL')
+
+chromosomes = chromosomes[-2:]
+populations = populations[0:2]
 
 def all_input(wildcards):
     params = {'chrom': chromosomes}
@@ -45,9 +56,9 @@ rule generate_gt:
         exe=paths['exe_root'].format(exe='generate_gt')
 
     output:
-        temp(paths['genotype_file'])
+        paths['genotype_file']
 
-    threads: 3
+    threads: 2
 
     shell:
         '{input.exe} '
@@ -83,9 +94,9 @@ def get_ibd_input(wildcards):
 def get_ibd_options(wildcards, input):
     result = ''
     if 'samples' in input.keys():
-        result += '--sample {input.samples} '
+        result += f'--sample {input.samples} '
     if 'mask' in input.keys():
-        result += '--mask {input.mask} '
+        result += f'--mask {input.mask} '
 
     return result
 
@@ -94,11 +105,9 @@ rule ibdmix:
         unpack(get_ibd_input)
 
     output:
-        temp(paths['ibd_output'])
+        paths['ibd_output']
 
     params: options=get_ibd_options
-
-    threads: 2
 
     shell:
         '{input.exe} '
@@ -115,11 +124,9 @@ rule summary:
     output:
         paths['ibd_summary']
 
-    threads: 2
-
     shell:
         'zcat {input.ibd} | '
         '{input.exe} '
             '{wildcards.length} '
-            '{wildcards.LOD} | '
-        'gzip > {output} '
+            '{wildcards.LOD} '
+        '> {output} '
