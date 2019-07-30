@@ -101,11 +101,13 @@ Once a run of `ibdmix` completes, it is informative to filter the results
 on a range of LOD values and length cutoffs.  It is faster to perform this
 operation on the `ibdmix` output than to rerun with different options.
 
-`summary.sh` takes up to four options in order:
+`summary.sh` takes up to five options in order:
 - __length cutoff__
 The minimum length to emit a region. Use 0 for all.
 - __LOD cutoff__
 The minimum LOD score to emit a region. Use 0 for all.
+- __population__
+The population to label each row.
 - __input__
 Optional, the uncompressed input file.
 - __output__
@@ -118,7 +120,7 @@ utilized.  To specify only one value, use `-` to indicate standard
 input/output.  For example, to filter length greater than 1000 and LOD greater
 than 5 from ibd\_output.txt and generate compressed output.gz
 ```
-summary.sh 1000 5 ibd_output.txt - | gzip > output.gz
+summary.sh 1000 5 population ibd_output.txt - | gzip > output.gz
 ```
 
 ### Snakemake Workflow
@@ -143,7 +145,7 @@ as {chrom} and {population} are present, the rest can change.  If you want
 to place each population in a separate directory, this could be changed to
 `{population}/altai_1kg_chr_{chrom}.txt.gz`.  The output files would look like
 `ASN/altai_1kg_chr_20.txt.gz`.  However, `{pop}/altai_1kg_{chr}.gz` will throw
-and error because snakemake expects to find specific wildcards.
+an error because snakemake expects to find specific wildcards.
 
 - compiler and options: These are utilized to make the executables from cpp
 source code.  The compiler requires C++ 11 standard.

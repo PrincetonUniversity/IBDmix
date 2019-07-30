@@ -3,8 +3,8 @@ compiler: "g++"
 compiler_options: "-std=c++11"
 
 paths:
-    exe_root: /tigress/AKEY/akey_vol1/home/luchenuw/IBDmix/exe/{exe}
-    source_root: /tigress/AKEY/akey_vol1/home/luchenuw/IBDmix/IBDmix/
+    exe_root: /home/tcomi/projects/IBDmix/exe/{exe}
+    source_root: /home/tcomi/projects/IBDmix/IBDmix/
     modern_vcf: "/tigress/AKEY/akey_vol2/wqfu/nobackup/1KGP/\
                  ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5a\
                  .20130502.genotypes.vcf.gz"
@@ -21,7 +21,9 @@ paths:
     ibd_output: "{output_root}/ibd_raw/\
                  {sample_name}_{population}_{chrom}.gz"
     ibd_summary: "{output_root}/ibd_summary/\
-                  {sample_name}_{population}_{chrom}_{LOD}_{length}.txt"
+                  {sample_name}_{population}_{chrom}_{LOD}_{length}.gz"
+    combined_summary: "{output_root}/ibd_summary_combined/\
+                       {sample_name}_{chrom}_{LOD}_{length}.txt"
 
 IBDmix:
     # can also include name of archaic

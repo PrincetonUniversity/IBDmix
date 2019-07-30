@@ -17,13 +17,14 @@ if 'sample_file' in paths:
 if len(populations) == 0:
     paths['ibd_output'] = paths['ibd_output'].replace('{population}', 'ALL')
     paths['ibd_summary'] = paths['ibd_summary'].replace('{population}', 'ALL')
+    populations = ['ALL']
 
 def all_input(wildcards):
     params = {'chrom': chromosomes}
     path = paths['ibd_output']
 
     if 'summary_lod' in config['IBDmix']:
-        path = paths['ibd_summary']
+        path = paths['combined_summary']
         params['LOD'] = config['IBDmix']['summary_lod']
         params['length'] = config['IBDmix']['summary_length']
 
@@ -126,4 +127,24 @@ rule summary:
         '{input.exe} '
             '{wildcards.length} '
             '{wildcards.LOD} '
-        '> {output} '
+            '{wildcards.population} '
+        '| gzip > {output} '
+
+def combine_input(wildcards):
+    partial_summary = paths['ibd_summary']\
+        .replace('{chrom}', wildcards.chrom)\
+        .replace('{LOD}', wildcards.LOD)\
+        .replace('{length}', wildcards.length)
+    return expand(partial_summary, population=populations)
+
+rule combine:
+    input:
+        combine_input
+
+    output:
+        paths['combined_summary']
+
+    shell:
+        "zcat {input} | awk "
+            "'NR == 1 || !/^ID\tchr/ {{ print }}' "
+        " > {output} "
