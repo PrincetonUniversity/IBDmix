@@ -32,15 +32,15 @@ check_one (){
             -r $MASK -d 4 -e 0.002 >> $pop.out
 
         # convert new output to old, sorted
-        awk -v OFS='\t' '{print $0, $5}' $NEW_OUT | sort > ${NEW_OUT}.sort
-        line=$(cmp ${NEW_OUT}.sort <(sort $OLD_OUT) | awk '{print $NF}')
+        #awk -v OFS='\t' '{print $0, $5}' $NEW_OUT | sort > ${NEW_OUT}.sort
+        #line=$(cmp ${NEW_OUT}.sort <(sort $OLD_OUT) | awk '{print $NF}')
 
-        if [ ! -z $line ]; then
-            echo "MISMATCH! Line: $line Pop: $pop Chrom: $chrnum"
-            awk -v line=$line 'NR==line{print "Expected: "$0; exit}' <(sort ${OLD_OUT})
-            awk -v line=$line 'NR==line{print "Actual:   "$0; exit}' "${NEW_OUT}.sort"
-            exit
-        fi
+        #if [ ! -z $line ]; then
+        #    echo "MISMATCH! Line: $line Pop: $pop Chrom: $chrnum"
+        #    awk -v line=$line 'NR==line{print "Expected: "$0; exit}' <(sort ${OLD_OUT})
+        #    awk -v line=$line 'NR==line{print "Actual:   "$0; exit}' "${NEW_OUT}.sort"
+        #    exit
+        #fi
     done
     echo "${pop} all matching!"
 }
@@ -56,7 +56,7 @@ check_chrom (){
     OLD_OUT=/tigress/AKEY/akey_vol1/home/luchenuw/WenqingEmpiricaltest_chr22/Finalcallset/2013pubAltai/calling_intermediatefiles/Altai2013_1KGP3_chr${chrnum}_${pop}.txt 
     MASK=/tigress/AKEY/akey_vol1/home/luchenuw/data/FilterBed/FullVersionforAltai2013_1KGP3strict/Altai2013_1KGP3strict.mask.chr${chrnum}.bed
 
-    time tests/ibd_new -g <(cat $GT_HEAD $GT_IN) -o $NEW_OUT \
+    tests/ibd_new -g <(cat $GT_HEAD $GT_IN) -o $NEW_OUT \
         -s <(awk '{if($2 == 1) print $1}' $INDIV) \
         -r $MASK -d 4 -e 0.002
 
@@ -103,6 +103,6 @@ check_old (){
 }
 export -f check_one
 
-check_one 1
-# check_chrom 1 22
+# check_one 1
+check_chrom 11 22
 # seq 1 26 | xargs -P 1 -I {} bash -c 'check_one "{}"'

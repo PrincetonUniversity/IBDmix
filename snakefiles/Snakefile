@@ -10,9 +10,9 @@ for wild in yaml_wildcards:
         if fmt in filename:
             paths[key] = filename.replace(fmt, paths[wild])
 
-populations = []
-if 'sample_file' in paths:
-    populations = glob_wildcards(paths['sample_file']).population
+populations = ['IBS']
+# if 'sample_file' in paths:
+#     populations = glob_wildcards(paths['sample_file']).population
 
 if len(populations) == 0:
     paths['ibd_output'] = paths['ibd_output'].replace('{population}', 'ALL')
@@ -114,10 +114,57 @@ rule ibdmix:
             '{params.options} '
             '{config[IBDmix][options]} '
 
+def ibd_mask_bed_input(wildcards):
+    return {
+        'ibd': paths['ibd_output'],
+        'mask': paths['mask_file']
+    }
+
+rule ibd_mask_bed:
+    input:
+        unpack(ibd_mask_bed_input)
+
+    output:
+        paths['ibd_bed']
+
+    singularity:
+        'docker://biocontainers/bedtools:2.25.0'
+
+    shell:
+        'awk \''
+            'BEGIN{{OFS="\\t"}} '
+            'NR==FNR{{'  # build chr,start,end to max and sum masked
+                'sum[$1 "." $2 "." $3] += $7; '
+                'if(max[$1 "." $2 "." $3] < $7){{ '
+                    'max[$1 "." $2 "." $3] = $7 }} '
+                'next; }} '
+            'FNR==1{{ print $0, "total_masked", "largest_mask" ; next}} '
+            '{{ print $0, sum[$2 "." $3 "." $4], max[$2 "." $3 "." $4]}} \' '
+            '<( zcat {input.ibd} | '
+                'tail -n +2 | '
+                'cut -f2-4 | '
+                'sort -k2,3n | '
+                'uniq | '
+            'bedtools intersect '
+                '-a stdin '
+                '-b {input.mask} '
+                '-wao '  # write all overlap
+                '-sorted ) '
+            '<( zcat {input.ibd} ) '
+            '| gzip > {output} '
+
+def summary_input(wildcards):
+    ibd = paths['ibd_output']
+    if 'mask_file' in paths:
+        ibd = paths['ibd_bed']
+    return {
+        'exe': paths['source_root']+'summary.sh',
+        'ibd': ibd
+    }
+
 rule summary:
     input:
-        exe=paths['source_root']+'summary.sh',
-        ibd=paths['ibd_output']
+        unpack(summary_input)
 
     output:
         paths['ibd_summary']
@@ -131,11 +178,11 @@ rule summary:
         '| gzip > {output} '
 
 def combine_input(wildcards):
-    partial_summary = paths['ibd_summary']\
-        .replace('{chrom}', wildcards.chrom)\
-        .replace('{LOD}', wildcards.LOD)\
-        .replace('{length}', wildcards.length)
-    return expand(partial_summary, population=populations)
+    return expand(paths['ibd_summary'],
+                  chrom=wildcards.chrom,
+                  LOD=wildcards.LOD,
+                  length=wildcards.length,
+                  population=populations)
 
 rule combine:
     input:

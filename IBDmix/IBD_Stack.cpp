@@ -25,13 +25,14 @@ void free_stack(){
         free(ptr);
 }
 
-struct IBD_Node* get_node(unsigned long int position, double lod){
+struct IBD_Node* get_node(unsigned long int position, double lod, unsigned char bitmask){
     if (pool == nullptr)
         allocate(buff_size);
 
     struct IBD_Node* result = pool;
     result->position = position;
     result->lod = lod;
+    result->bitmask = bitmask;
     result->cumulative_lod = lod;
     pool = pool->next;
     return result;

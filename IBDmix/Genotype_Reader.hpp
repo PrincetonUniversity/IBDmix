@@ -2,6 +2,12 @@
 #include <stdio.h>
 
 int find_token(const char * query, const char * str);
+const unsigned char IN_MASK = 1 << 0;
+const unsigned char MAF_LOW = 1 << 1;
+const unsigned char MAF_HIGH = 1 << 2;
+const unsigned char RECOVER_2_0 = 1 << 3;
+const unsigned char RECOVER_0_2 = 1 << 4;
+
 
 class Genotype_Reader{
     private:
@@ -26,6 +32,10 @@ class Genotype_Reader{
         double calculate_lod(char modern);
         void update_lod_cache(char archaic, double freq_b, double modern_error,
                 bool selected=true);
+
+        int num_lines, count_in_mask, fail_maf, count_recovered, both;
+        double frac_rec;
+
     public:
         Genotype_Reader(FILE * genotype, FILE * mask=nullptr,
                 double archaic_error=0.01, double modern_error_max=0.002,
@@ -36,6 +46,8 @@ class Genotype_Reader{
         int chromosome;
         unsigned long int position;
         double *lod_scores;
+        unsigned char *recover_type;
+        unsigned char line_filtering;
 
         int initialize(FILE * samples=nullptr,
                 const char * archaic=nullptr);

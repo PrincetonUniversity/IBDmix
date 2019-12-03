@@ -25,8 +25,13 @@ Genotype_Reader::Genotype_Reader(FILE * genotype, FILE * mask,
     samples = NULL;
     sample_to_index = nullptr;
     lod_scores = nullptr;
+    recover_type = nullptr;
     lod_cache = new double[3];
     mask_chromosome = -1; // force read on first check
+
+
+    both = num_lines = count_in_mask = fail_maf = count_recovered = 0;
+    frac_rec = 0;
 }
 
 Genotype_Reader::~Genotype_Reader(){
@@ -38,6 +43,8 @@ Genotype_Reader::~Genotype_Reader(){
         delete []sample_to_index;
     if(lod_scores != nullptr)
         delete []lod_scores;
+    if(recover_type != nullptr)
+        delete []recover_type;
     delete []lod_cache;
 }
 
@@ -80,6 +87,7 @@ int Genotype_Reader::initialize(FILE * samples, const char * archaic){
     determine_sample_mapping(sample_line);
 
     lod_scores = new double[result];
+    recover_type = new unsigned char[result];
     return result;
 }
 
@@ -126,7 +134,7 @@ void Genotype_Reader::find_archaic(const char * archaic,
             for(sp = samples; *(sp+len) != '\0'; sp++)
                 *sp = *(sp + len);
             *sp = '\0';
-            
+
         }
         // else keep archaic in samples regardless
     }
@@ -161,15 +169,22 @@ bool Genotype_Reader::update(){
     // read next line of input file
     // update the lod_scores array for reading, handling masks
     // return false if the file is read fully
-    if(fscanf(genotype, "%i\t%lu\t%*s\t%*s\t", &chromosome, &position) == EOF)
+    if(fscanf(genotype, "%i\t%lu\t%*s\t%*s\t", &chromosome, &position) == EOF){
         return false;
+    }
+    line_filtering = 0;
     getline(&buffer, &buf_size, genotype);
+    num_lines++;
     // selected indicates if the line should have its lod calculated
     // set to false if one of the following occurs:
     // - in a masked region
     // - fails to meet allele cutoff
     // If selected is false, lod = 0, unless archaic = (0, 2) and modern = (2, 0)
     bool selected = !in_mask();
+    if(!selected){
+        count_in_mask++;
+        line_filtering |= IN_MASK;
+    }
     process_line_buffer(selected);
     return true;
 }
@@ -180,7 +195,7 @@ bool Genotype_Reader::in_mask(){
     if(mask == nullptr)
         return false;
 
-    while(!feof(mask) && (mask_chromosome < chromosome || 
+    while(!feof(mask) && (mask_chromosome < chromosome ||
             (mask_chromosome == chromosome && position > mask_end)))
         fscanf(mask, "%i%lu%lu\n", &mask_chromosome, &mask_start, &mask_end);
 
@@ -196,12 +211,31 @@ void Genotype_Reader::process_line_buffer(bool selected){
     // All arrays must be initialized!
     char archaic = buffer[archaic_index*2];  //throughout, *2 to skip tabs
     double allele_frequency = 0;
-    selected &= get_frequency(allele_frequency);
+    bool temp = get_frequency(allele_frequency);
+    if(!temp) fail_maf++;
+    selected &= temp;
+    if(!selected) both++;
     double modern_error = get_modern_error(allele_frequency);
 
     update_lod_cache(archaic, allele_frequency, modern_error, selected);
-    for(int i = 0; i < num_samples; i++)
+    bool recovered = false;
+    for(int i = 0; i < num_samples; i++){
+        recover_type[i] = 0;
+        if(!selected){
+            if(archaic == '0' && buffer[sample_to_index[i]*2] == '2'){
+                recovered = true;
+                frac_rec++;
+                recover_type[i] |= RECOVER_0_2;
+            }
+            if((archaic == '2' && buffer[sample_to_index[i]*2] == '0')){
+                recovered = true;
+                frac_rec++;
+                recover_type[i] |= RECOVER_2_0;
+            }
+        }
         lod_scores[i] = calculate_lod(buffer[sample_to_index[i]*2]);
+    }
+    if(recovered) count_recovered++;
 }
 
 bool Genotype_Reader::get_frequency(double &frequency){
@@ -216,9 +250,14 @@ bool Genotype_Reader::get_frequency(double &frequency){
             alt_counts += current - '0';
         }
 
-    if (alt_counts <= minor_allele_cutoff || // not enough counts
-            total_counts - alt_counts <= minor_allele_cutoff) // too many
+    if (alt_counts <= minor_allele_cutoff){ // not enough counts
         select = false;
+        line_filtering |= MAF_LOW;
+    }
+    if (total_counts - alt_counts <= minor_allele_cutoff){ // too many
+        select = false;
+        line_filtering |= MAF_HIGH;
+    }
 
     if(total_counts == 0)
         frequency = 0;

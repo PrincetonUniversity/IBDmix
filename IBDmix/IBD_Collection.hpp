@@ -13,6 +13,6 @@ class IBD_Collection{
         IBD_Collection();
         void initialize(int num_samples, double threshold,
                 Genotype_Reader &reader);
-        void update(Genotype_Reader &reader, FILE * output);
+        void update(Genotype_Reader &reader, FILE * output, FILE * sample);
         void purge(FILE * output);
 };

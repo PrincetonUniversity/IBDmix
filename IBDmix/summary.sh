@@ -27,9 +27,10 @@ fi
 declare -A pop2anc=(
     [CHB]=EAS [JPT]=EAS [CHS]=EAS [CDX]=EAS [KHV]=EAS
     [CEU]=EUR [TSI]=EUR [FIN]=EUR [GBR]=EUR [IBS]=EUR
-    [YRI]=AFR [LWK]=AFR [GWD]=AFR [MSL]=AFR [ESN]=AFR [ASW]=AFR [ACB]=AFR
-    [MXL]=AMR [PUR]=AMR [CLM]=AMR [PEL]=AMR
-    [GIH]=SAS [PJL]=SAS [BEB]=SAS [STU]=SAS [ITU]=SAS
+    [YRI]=AFR [LWK]=AFR [GWD]=AFR [MSL]=AFR [ESN]=AFR
+    [ASW]=AFR [ACB]=AFR [MXL]=AMR [PUR]=AMR [CLM]=AMR
+    [PEL]=AMR [GIH]=SAS [PJL]=SAS [BEB]=SAS [STU]=SAS
+    [ITU]=SAS
 )
 
 awk -v length_cutoff=$length -v lod_cutoff=$lod \
@@ -45,7 +46,7 @@ NR == 1{
 }
 {
     len = $4 - $3
-    lod = $5
+    lod = $6
     if(len > length_cutoff && lod > lod_cutoff){
         print $0, len, pop, anc | "sort --key=1,1 --key=3n,3"
     }

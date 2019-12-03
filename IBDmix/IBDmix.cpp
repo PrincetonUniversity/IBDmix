@@ -120,6 +120,12 @@ int main(int argc, char *argv[]){
         exit(1);
     }
 
+    // write header
+    fprintf(output, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+            "ID", "chrom", "start",
+            "end+1", "end", "slod",
+            "sites", "mask and maf", "in_mask", "maf_low",
+            "maf_high", "rec_2_0", "rec_0_2");
     Genotype_Reader reader = Genotype_Reader(
             genotype,
             mask,
@@ -138,8 +144,10 @@ int main(int argc, char *argv[]){
             LOD_threshold,
             reader);
 
+    FILE * samp = fopen("sample.txt", "w");
     while(reader.update())
-        ibds.update(reader, output);
+        ibds.update(reader, output, samp);
+    fclose(samp);
 
     ibds.purge(output);
 

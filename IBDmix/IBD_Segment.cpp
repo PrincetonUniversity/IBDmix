@@ -18,9 +18,9 @@ IBD_Segment::~IBD_Segment(){
 }
 
 void IBD_Segment::add_lod(int chromosome, unsigned long int position,
-        double lod, FILE *output){
+        double lod, FILE *output, unsigned char bitmask){
     chrom = chromosome;
-    add_node(get_node(position, lod), output);
+    add_node(get_node(position, lod, bitmask), output);
 }
 
 void IBD_Segment::purge(FILE *output){
@@ -38,6 +38,8 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
 
     // first entry, nothing else to do
     if(top->next == nullptr){
+        both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
+        update_counts(new_node->bitmask);
         start = end = top;
         top->cumulative_lod = top->lod;
         return;
@@ -46,6 +48,7 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
 
     // new max, collapse to start
     if(top->cumulative_lod >= end->cumulative_lod){
+        update_counts(new_node->bitmask);
         end = top;
         reclaim_between(end, start);
     }
@@ -62,9 +65,10 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
                 if(ptr->lod != -std::numeric_limits<double>::infinity())
                     pos = ptr->position;
             }
-            fprintf(output, "%s\t%d\t%lu\t%lu\t%g\n",
+            fprintf(output, "%s\t%d\t%lu\t%lu\t%lu\t%g\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
                     name, chrom, start->position,
-                    pos, end->cumulative_lod);
+                    pos, end->position, end->cumulative_lod,
+                    sites, both, in_mask, maf_low, maf_high, rec_2_0, rec_0_2);
         }
         // reverse list to reprocess remaining nodes
         top = reverse(top);
@@ -77,6 +81,16 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
         while(reversed != nullptr)
             add_node(pop(reversed), output);
     }
+}
+
+void IBD_Segment::update_counts(unsigned char bitmask){
+    if((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH))) both++;
+    if((bitmask & IN_MASK) && !(bitmask & MAF_LOW)) in_mask++;
+    if(!(bitmask & IN_MASK) && (bitmask & MAF_LOW)) maf_low++;
+    if(!(bitmask & IN_MASK) && (bitmask & MAF_HIGH)) maf_high++;
+    if(bitmask & RECOVER_2_0) rec_2_0++;
+    if(bitmask & RECOVER_0_2) rec_0_2++;
+    sites++;
 }
 
 int IBD_Segment::length(void){

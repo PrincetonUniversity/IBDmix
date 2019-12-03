@@ -15,11 +15,13 @@ paths:
     mask_file: "/tigress/AKEY/akey_vol1/home/luchenuw/data/FilterBed/\
                 FullVersionforAltai2013_1KGP3strict/\
                 Altai2013_1KGP3strict.mask.chr{chrom}.bed"
-    output_root: /tigress/tcomi/ibdmix_temp
+    output_root: /tigress/tcomi/ibdmix_temp_with_stats
     sample_name: altai_1kg
     genotype_file: "{output_root}/genotype/{sample_name}_{chrom}.gz"
     ibd_output: "{output_root}/ibd_raw/\
                  {sample_name}_{population}_{chrom}.gz"
+    ibd_bed: "{output_root}/ibd_bed/\
+              {sample_name}_{population}_{chrom}.gz"
     ibd_summary: "{output_root}/ibd_summary/\
                   {sample_name}_{population}_{chrom}_{LOD}_{length}.gz"
     combined_summary: "{output_root}/ibd_summary_combined/\

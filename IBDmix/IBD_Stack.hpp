@@ -3,11 +3,12 @@
 struct IBD_Node {
     double cumulative_lod, lod;
     unsigned long int position;
+    unsigned char bitmask;
     struct IBD_Node *next;
 };
 void allocate(int buffer_size);
 void free_stack(void);
-struct IBD_Node* get_node(unsigned long int position, double lod=0);
+struct IBD_Node* get_node(unsigned long int position, double lod=0, unsigned char bitmask=0);
 void push(struct IBD_Node *& top, struct IBD_Node * new_node);
 struct IBD_Node * pop(struct IBD_Node *& top);
 void reclaim_node(struct IBD_Node *node);
