@@ -12,7 +12,8 @@ class IBD_Collection{
     public:
         IBD_Collection();
         void initialize(int num_samples, double threshold,
-                Genotype_Reader &reader);
-        void update(Genotype_Reader &reader, FILE * output, FILE * sample);
+                Genotype_Reader &reader, bool exclusive_end=true,
+                bool more_stats=false);
+        void update(Genotype_Reader &reader, FILE * output);
         void purge(FILE * output);
 };

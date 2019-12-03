@@ -8,20 +8,17 @@ IBD_Collection::IBD_Collection(){
 }
 
 void IBD_Collection::initialize(int num_samples, double threshold,
-        Genotype_Reader &reader){
+        Genotype_Reader &reader, bool exclusive_end, bool more_stats){
     this->num_samples = num_samples;
     IBDs.reserve(num_samples);
     char *sample;
     for(int i = 0; i < num_samples; i++){
         reader.yield_sample(sample, i);
-        IBDs.emplace_back(sample, threshold);
+        IBDs.emplace_back(sample, threshold, exclusive_end, more_stats);
     }
 }
 
-void IBD_Collection::update(Genotype_Reader &reader, FILE * output, FILE * sample){
-    fprintf(sample, "%lu\t%f\t%d\t%d\n", reader.position, reader.lod_scores[0],
-            reader.line_filtering & IN_MASK ? 1 : 0,
-            reader.line_filtering & MAF_LOW ? 1 : 0);
+void IBD_Collection::update(Genotype_Reader &reader, FILE * output){
     for(int i = 0; i < num_samples; i++){
         IBDs[i].add_lod(reader.chromosome,
                 reader.position,

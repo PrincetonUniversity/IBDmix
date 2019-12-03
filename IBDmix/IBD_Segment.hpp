@@ -14,7 +14,10 @@ class IBD_Segment{
         void update_counts(unsigned char bitmask);
 
     public:
-        IBD_Segment(const char *name, double threshold);
+        bool exclusive_end;
+        bool more_stats;
+        IBD_Segment(const char *name, double threshold,
+                bool exclusive_end, bool more_stats);
         ~IBD_Segment();
         void add_lod(int chromosome, unsigned long int position,
                 double lod, FILE * output, unsigned char bitmask);

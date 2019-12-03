@@ -4,13 +4,16 @@
 #include "IBD_Segment.hpp"
 #include "IBD_Stack.hpp"
 
-IBD_Segment::IBD_Segment(const char *segment_name, double threshold){
+IBD_Segment::IBD_Segment(const char *segment_name, double threshold,
+        bool exclusive_end, bool more_stats){
     // NOTE!! start and end refer to the segment, not the stack
     // The stack grows nearest end, start is nearest to bottom
     start = end = top = nullptr;
     name = new char[strlen(segment_name)+1];
     strcpy(name, segment_name);
     thresh = threshold;
+    this->exclusive_end = exclusive_end;  // true to match legacy of 'next' position
+    this->more_stats = more_stats;
 }
 
 IBD_Segment::~IBD_Segment(){
@@ -56,19 +59,22 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
     if(top->cumulative_lod < 0){
         // write output
         if(end->cumulative_lod >= thresh){
-            // TODO this is slow and bad to match legacy, probably change
             unsigned long int pos = end->position;
-            if(end != top){
+            if(exclusive_end && end != top){
                 //find previous node 'above' top
                 struct IBD_Node * ptr = top;
                 for(; ptr->next != end; ptr=ptr->next);
                 if(ptr->lod != -std::numeric_limits<double>::infinity())
                     pos = ptr->position;
             }
-            fprintf(output, "%s\t%d\t%lu\t%lu\t%lu\t%g\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+            fprintf(output, "%s\t%d\t%lu\t%lu\t%g",
                     name, chrom, start->position,
-                    pos, end->position, end->cumulative_lod,
-                    sites, both, in_mask, maf_low, maf_high, rec_2_0, rec_0_2);
+                    pos, end->cumulative_lod);
+            if (more_stats == true)
+                fprintf(output, "\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
+                        sites, both, in_mask, maf_low,
+                        maf_high, rec_2_0, rec_0_2);
+            fprintf(output, "\n");
         }
         // reverse list to reprocess remaining nodes
         top = reverse(top);
@@ -84,6 +90,8 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
 }
 
 void IBD_Segment::update_counts(unsigned char bitmask){
+    if (more_stats == false)
+        return;
     if((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH))) both++;
     if((bitmask & IN_MASK) && !(bitmask & MAF_LOW)) in_mask++;
     if(!(bitmask & IN_MASK) && (bitmask & MAF_LOW)) maf_low++;

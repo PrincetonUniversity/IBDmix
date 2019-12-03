@@ -28,13 +28,18 @@ paths:
                        {sample_name}_{chrom}_{LOD}_{length}.txt"
 
 IBDmix:
-    # can also include name of archaic
+    # can also include name of archaic, more-stats or inclusive-end
     options: >
         --LOD-threshold 3.0
         --minor-allele-count-threshold 1
         --archaic-error 0.01
         --modern-error-max 0.002
         --modern-error-proportion 2
+        #--more-stats
+        #--inclusive-end
+
+    # True to calculate total masked bases and largest masked region
+    mask_stats: True
 
     # remove for no summary, add 0s for no filtering
     summary_lod:
@@ -72,3 +77,20 @@ IBDmix:
 #                     ratio between allele error rate and minor
 #                     allele frequency for modern humans
 #                       DEFAULT: 2
+#   -i, --inclusive-end
+#                     switch to report the end position as the
+#                     first position of decreasing LOD score.
+#                       DEFAULT: end is *next* position in genotype file
+#   -t, --more-stats
+#                     report additional columns detailing execution
+#                     sites: total number of sites in genotype file in region
+#                     mask and maf: sites which are both in the masked region
+#                        and fail MAF cutoff
+#                     in_mask: sites in the mask but pass MAF
+#                     maf_low: sites failing MAF with low frequency
+#                     maf_high: sites failing MAF with high frequency
+#                     rec_2_0: sites failing mask or MAF but still considered
+#                       due to a genotype of 2 in archaic and 0 in modern
+#                     rec_0_2: same as rec_2_0 but with 0 in archaic and
+#                        2 in modern
+#                       DEFAULT: off

@@ -95,6 +95,25 @@ given site is taken as the minimum of the `-e` option
 and the product of this value with the allele
 frequency.
 Default: 2
+- __-i, --inclusive-end__
+A switch to change the default behavior of the end position.
+By default, the reported end will be the next position in the
+genotype file which produces a decreasing LOD.  It corresponds to
+the region of [start, end).  With inclusive end set, the reported
+end is the last position with increasing LOD, or [start, end].
+- __-t, --more-stats__
+A switch to report additional region-level statistics.
+Additional columns include:
+  - sites: total number of sites in genotype file in region
+  - mask and maf: sites which are both in the masked region
+       and fail MAF cutoff
+  - in\_mask: sites in the mask but pass MAF
+  - maf\_low: sites failing MAF with low frequency
+  - maf\_high: sites failing MAF with high frequency
+  - rec\_2\_0: sites failing mask or MAF but still considered
+      due to a genotype of 2 in archaic and 0 in modern
+  - rec\_0\_2: same as rec\_2\_0 but with 0 in archaic and
+       2 in modern
 
 #### Summary
 Once a run of `ibdmix` completes, it is informative to filter the results
@@ -132,7 +151,9 @@ the workflow can be customized by setting options in snakefiles/config.yaml.
 All files are compressed with gzip.
 
 The easiest way to get started is to set your paths in the config file and
-run `snakemake` in the snakefiles directory.
+run `snakemake` in the snakefiles directory.  If mask statistics are generated,
+bedtools needs to be installed and included in PATH, otherwise run snakemake 
+with the `--use-singularity` flag to download and use a docker container instead.
 
 #### Important Configuration Options
 > A note on wildcards.
@@ -160,8 +181,12 @@ will be used and 'ALL' will be the population name.
 - mask\_file: The bed file to use for each chromosome.  If removed, no
 masking will be performed during IBDmix.
 - IBDmix options: All parameters for performing ibdmix.  The genotype, output,
-mask, and sample are handled automatically.  Another options can be supplied
-here (including archaic sample name).
+mask, and sample are handled automatically.  Other options can be supplied
+here (including archaic sample name, more stats and inclusive end).
+- IBDmix mask\_stats: If set to True and a mask file is provided, additional
+columns will be determined including the total number of BP masked in each
+region and the largest masked area within each region.  This values can be
+used for further filtering.
 - IBDmix summary\_lod: List of all LOD values for filter.  If sorted output
 is desired, a value of 0 will keep all regions. Remove this entry to just
 produce the raw IBD files.

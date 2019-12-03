@@ -46,6 +46,22 @@ void print_options(void){
         << "                    ratio between allele error rate and minor\n"
         << "                    allele frequency for modern humans\n"
         << "                      DEFAULT: 2\n"
+        << "\n"
+        << "  -i, --inclusive-end\n"
+        << "                    switch to report the end position as the\n"
+        << "                    first position of decreasing LOD score.\n"
+        << "                      DEFAULT: end is *next* position in genotype file\n"
+        << "\n"
+        << "  -t, --more-stats\n"
+        << "                    report additional columns detailing execution\n"
+        << "                    sites: total number of sites in genotype file in region\n"
+        << "                    mask and maf: sites which are both in the masked region and fail MAF cutoff\n"
+        << "                    in_mask: sites in the mask but pass MAF\n"
+        << "                    maf_low: sites failing MAF with low frequency\n"
+        << "                    maf_high: sites failing MAF with high frequency\n"
+        << "                    rec_2_0: sites failing mask or MAF but still considered due to a genotype of 2 in archaic and 0 in modern\n"
+        << "                    rec_0_2: same as rec_2_0 but with 0 in archaic and 2 in modern\n"
+        << "                      DEFAULT: off\n"
         ;
 }
 
@@ -60,6 +76,11 @@ int main(int argc, char *argv[]){
            archaic_error = 0.01,
            modern_error_max = 0.0025,
            modern_error_prop = 2;
+    // if output of end should be start, end) [exclusive end point]
+    // or start, end] [inclusive end point; set exclusive to false]
+    bool exclusive_end = true;
+    // if output of should include additional stats about each region
+    bool more_stats = false;
 
     static const struct option long_opts[] = {
         {"help", no_argument, nullptr, 'h'},
@@ -73,6 +94,8 @@ int main(int argc, char *argv[]){
         {"archaic-error", required_argument, nullptr, 'a'},
         {"modern-error-max", required_argument, nullptr, 'e'},
         {"modern-error-proportion", required_argument, nullptr, 'c'},
+        {"inclusive-end", no_argument, nullptr, 'i'},
+        {"more-stats", no_argument, nullptr, 't'},
         {0, 0, 0, 0}
     };
     char c;
@@ -84,7 +107,7 @@ int main(int argc, char *argv[]){
                     << " -g <genotype file> -s <sample file> -r <mask file>\n"
                     << " -o <output> -d <LOD threshold> -m <MA cutoff>\n"
                     << " -a <archaic error> -e <modern error max>\n"
-                    << " -c <modern error proportion>\n";
+                    << " -c <modern error proportion> [-i] [-t]\n";
                 print_options();
                 return 0;
             case 'g': 
@@ -106,6 +129,8 @@ int main(int argc, char *argv[]){
             case 'a': archaic_error = atof(optarg); break;
             case 'e': modern_error_max = atof(optarg); break;
             case 'c': modern_error_prop = atof(optarg); break;
+            case 'i': exclusive_end = false; break;
+            case 't': more_stats = true; break;
         }
     }
 
@@ -121,11 +146,13 @@ int main(int argc, char *argv[]){
     }
 
     // write header
-    fprintf(output, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-            "ID", "chrom", "start",
-            "end+1", "end", "slod",
-            "sites", "mask and maf", "in_mask", "maf_low",
-            "maf_high", "rec_2_0", "rec_0_2");
+    fprintf(output, "%s\t%s\t%s\t%s\t%s",
+            "ID", "chrom", "start", "end", "slod");
+    if (more_stats == true)
+        fprintf(output, "\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                "sites", "mask and maf", "in_mask", "maf_low",
+                "maf_high", "rec_2_0", "rec_0_2");
+    fprintf(output, "\n");
     Genotype_Reader reader = Genotype_Reader(
             genotype,
             mask,
@@ -142,12 +169,12 @@ int main(int argc, char *argv[]){
     ibds.initialize(
             num_samples,
             LOD_threshold,
-            reader);
+            reader,
+            exclusive_end,
+            more_stats);
 
-    FILE * samp = fopen("sample.txt", "w");
     while(reader.update())
-        ibds.update(reader, output, samp);
-    fclose(samp);
+        ibds.update(reader, output);
 
     ibds.purge(output);
 
