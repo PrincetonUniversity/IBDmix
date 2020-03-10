@@ -197,7 +197,10 @@ bool Genotype_Reader::in_mask(){
 
     while(!feof(mask) && (mask_chromosome < chromosome ||
             (mask_chromosome == chromosome && position > mask_end)))
-        fscanf(mask, "%i%lu%lu\n", &mask_chromosome, &mask_start, &mask_end);
+        if (fscanf(mask, "%i%lu%lu\n", &mask_chromosome, &mask_start, &mask_end) == 0){
+            printf("Unable to read mask file; chromosome must be an integer\n");
+            exit(1);
+        }
 
     return mask_chromosome == chromosome && position > mask_start &&
         position <= mask_end;

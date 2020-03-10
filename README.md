@@ -35,6 +35,8 @@ The summary.sh script is a wrapper around awk and sort and
 requires no compilation.
 
 ### Usage Details
+Note that all chromosomes must be integers in the input vcfs and masked bed files.
+
 #### Generate Genotype
 `generate_gt` has the following options:
 - __-h, --help__
