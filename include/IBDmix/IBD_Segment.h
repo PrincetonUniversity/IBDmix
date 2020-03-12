@@ -1,6 +1,6 @@
 #pragma once
-#include "IBD_Stack.hpp"
-#include "Genotype_Reader.hpp"
+#include "IBDmix/IBD_Stack.h"
+#include "IBDmix/Genotype_Reader.h"
 #include <stdio.h>
 
 class IBD_Segment{

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
-#include "IBD_Stack.hpp"
+#include "IBDmix/IBD_Stack.h"
 
 struct IBD_Node* pool = nullptr;
 std::vector<struct IBD_Node*> alloc_ptrs;

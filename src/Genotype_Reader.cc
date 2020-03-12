@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <iostream>
-#include "Genotype_Reader.hpp"
+#include "IBDmix/Genotype_Reader.h"
 
 bool is_break(const char * chr);
 

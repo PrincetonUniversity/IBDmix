@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string.h>
 #include <limits>
-#include "IBD_Segment.hpp"
-#include "IBD_Stack.hpp"
+#include "IBDmix/IBD_Segment.h"
+#include "IBDmix/IBD_Stack.h"
 
 IBD_Segment::IBD_Segment(const char *segment_name, double threshold,
         bool exclusive_end, bool more_stats){

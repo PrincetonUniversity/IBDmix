@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <stdio.h>
-#include "IBD_Segment.hpp"
-#include "Genotype_Reader.hpp"
+#include "IBDmix/IBD_Segment.h"
+#include "IBDmix/Genotype_Reader.h"
 
 class IBD_Collection{
     private:

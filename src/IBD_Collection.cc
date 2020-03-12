@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include "IBD_Collection.hpp"
-#include "Genotype_Reader.hpp"
+#include "IBDmix/IBD_Collection.h"
+#include "IBDmix/Genotype_Reader.h"
 
 IBD_Collection::IBD_Collection(){
     num_samples = 0;

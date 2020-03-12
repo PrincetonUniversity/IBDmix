@@ -2,9 +2,9 @@
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
-#include "IBD_Collection.hpp"
-#include "Genotype_Reader.hpp"
-#include "IBD_Stack.hpp"
+#include "IBDmix/IBD_Collection.h"
+#include "IBDmix/Genotype_Reader.h"
+#include "IBDmix/IBD_Stack.h"
 
 void print_options(void){
     std::cout << "--------------------------OPTIONS--------------------------\n"
