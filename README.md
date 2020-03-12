@@ -76,7 +76,7 @@ genotype file (default output order for `generate_gt`).
 - __-r, --mask__
 Bed file of masked regions to **include** in the analysis.
 If not specified all sites are considered.
-- __-d, --LOD-threahold__
+- __-d, --LOD-threshold__
 Threshold value of log(odds) for emitting regions.
 Default: 3.0
 - __-m, --minor-allele-count-threshold__       
