@@ -1,6 +1,6 @@
 ---
 compiler: "g++"
-compiler_options: "-std=c++11"
+compiler_options: "-std=c++11 -O3"
 
 paths:
     exe_root: /home/tcomi/projects/IBDmix/exe/{exe}
@@ -10,18 +10,24 @@ paths:
                  .20130502.genotypes.vcf.gz"
     archaic_vcf: /tigress/limingli/data/old-Altai/gz/chr{chrom}.vcf.gz
     # if removed will use all samples
-    sample_file: /tigress/tcomi/ibdmix_temp/populations/{population}.txt
+    sample_file: "/projects/AKEY/akey_vol1/home/luchenuw/IBDmix/\
+                  sample_file_backup/{population}.txt"
     # if removed will use all positions
     mask_file: "/tigress/AKEY/akey_vol1/home/luchenuw/data/FilterBed/\
                 FullVersionforAltai2013_1KGP3strict/\
                 Altai2013_1KGP3strict.mask.chr{chrom}.bed"
-    output_root: /tigress/tcomi/ibdmix_temp_with_stats
+    genetic_map: "/tigress/tcomi/hg19/{population}/\
+                  {population}_recombination_map_hapmap_format_hg19_chr_{chrom}.txt"
+
+    output_root: /tigress/tcomi/ibdmix_temp_with_dists
     sample_name: altai_1kg
     genotype_file: "{output_root}/genotype/{sample_name}_{chrom}.gz"
     ibd_output: "{output_root}/ibd_raw/\
                  {sample_name}_{population}_{chrom}.gz"
     ibd_bed: "{output_root}/ibd_bed/\
               {sample_name}_{population}_{chrom}.gz"
+    ibd_bed_gen_dist: "{output_root}/ibd_bed_gen_dist/\
+                       {sample_name}_{population}_{chrom}.gz"
     ibd_summary: "{output_root}/ibd_summary/\
                   {sample_name}_{population}_{chrom}_{LOD}_{length}.gz"
     combined_summary: "{output_root}/ibd_summary_combined/\
