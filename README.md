@@ -16,19 +16,17 @@ IBDmix consists of 3 steps:
 3. Sort and filter results
 
 ### Compilation
-#### Generate Genotype
-`generate_gt` has a single source file and can be compiled with
+The provided CMake lists will automatically build the executables, but requires
+version 3.13 or greater.  To use:
+```shell
+pwd
+# /path/to/repo/IBDmix
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
 ```
-g++ -std=c++11 IBDmix/generate_gt.cpp -o generate_gt
-```
-
-#### IBDmix
-The `ibdmix` function requires several source files and is compiled with
-```
-g++ -std=c++11 IBDmix/IBDmix.cpp IBDmix/Genotype_Reader.cpp \
-    IBDmix/IBD_Collection.cpp IBDmix/IBD_Segment.cpp IBDmix/IBD_Stack.cpp \
-    -o ibdmix
-```
+The executables will be left in `IBDmix/build/src`.
 
 #### Summary
 The summary.sh script is a wrapper around awk and sort and
@@ -157,6 +155,9 @@ The easiest way to get started is to set your paths in the config file and
 run `snakemake` in the snakefiles directory.  If mask statistics are generated,
 bedtools needs to be installed and included in PATH, otherwise run snakemake 
 with the `--use-singularity` flag to download and use a docker container instead.
+
+If a cmake module is present, adding the --use-envmodules will activate it prior
+to compilation.
 
 #### Important Configuration Options
 > A note on wildcards.
