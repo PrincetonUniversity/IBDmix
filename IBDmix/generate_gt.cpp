@@ -50,6 +50,11 @@ class VCF_File
                         }
                         if(*ptr == '\n'){
                             *ptr = '\0';
+                            // handle tab at line end for header and remove an indiv
+                            if(*(ptr-1) == '\t'){
+                                *(ptr-1) = '\0';
+                                --number_individuals;
+                            }
                             break;
                         }
                     }
@@ -66,10 +71,6 @@ class VCF_File
             number_individuals -= 8; //remove other columns
             // note: because we count tabs above, we subtract 8 (instead of 9)
             // as the last column has a newline instead of a tab
-
-            // BUT if there is a tab then newline we should remove another!
-            if(*(ptr-1) == '\t')
-                --number_individuals;
 
             // allocate output lines, fill in tabs
             genotypes = new char [number_individuals*2 + 1];
