@@ -15,4 +15,5 @@ macro(package_add_test TESTNAME FILES LIBRARIES)
     add_test(NAME, ${TESTNAME} COMMAND ${TESTNAME})
 endmacro()
 
-# package_add_test(vcf_file_test test_vcf_file.cc vcf_file)
+package_add_test(ibd_node_test test_IBD_node.cc ibd_stack)
+package_add_test(ibd_segment_test test_IBD_segment.cc ibd_segment)

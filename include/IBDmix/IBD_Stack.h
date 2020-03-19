@@ -1,5 +1,6 @@
 #pragma once
 
+static int buff_size = 1024;
 struct IBD_Node {
     double cumulative_lod, lod;
     unsigned long int position;

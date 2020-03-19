@@ -5,7 +5,6 @@
 
 struct IBD_Node* pool = nullptr;
 std::vector<struct IBD_Node*> alloc_ptrs;
-int buff_size = 1024;
 
 void allocate(int buffer_size){
     // assumes only called when pool is nullptr

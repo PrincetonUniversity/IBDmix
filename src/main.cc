@@ -150,7 +150,7 @@ int main(int argc, char *argv[]){
             "ID", "chrom", "start", "end", "slod");
     if (more_stats == true)
         fprintf(output, "\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                "sites", "mask and maf", "in_mask", "maf_low",
+                "sites", "mask_and_maf", "in_mask", "maf_low",
                 "maf_high", "rec_2_0", "rec_0_2");
     fprintf(output, "\n");
     Genotype_Reader reader = Genotype_Reader(
