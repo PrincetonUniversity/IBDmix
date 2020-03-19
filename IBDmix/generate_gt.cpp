@@ -30,6 +30,7 @@ class VCF_File
             char *individual_start = NULL;
             buffer = NULL;
             len = 0;
+            char *ptr;
             chromosome = 0;
             // remove header
             while(fgetc(input) == '#'){
@@ -39,7 +40,7 @@ class VCF_File
                 // header with column names
                 else{
                     getline(&buffer, &len, input);
-                    for(char *ptr = buffer; *ptr != '\0'; ptr++){
+                    for(ptr = buffer; *ptr != '\0'; ptr++){
                         // count individuals, mark location for printing
                         if(*ptr == '\t'){
                             number_individuals++;
@@ -49,6 +50,7 @@ class VCF_File
                         }
                         if(*ptr == '\n'){
                             *ptr = '\0';
+                            break;
                         }
                     }
                     // write individuals to output
@@ -57,7 +59,7 @@ class VCF_File
                 }
             }
             if(number_individuals <= 8){
-                printf("Ill-formed file, unable to parse header\n");
+                fprintf(stderr, "Ill-formed file, unable to parse header\n");
                 exit(1);
             }
 
@@ -65,13 +67,19 @@ class VCF_File
             // note: because we count tabs above, we subtract 8 (instead of 9)
             // as the last column has a newline instead of a tab
 
+            // BUT if there is a tab then newline we should remove another!
+            if(*(ptr-1) == '\t')
+                --number_individuals;
+
             // allocate output lines, fill in tabs
             genotypes = new char [number_individuals*2 + 1];
             blank_line = new char [number_individuals*2 + 1];
-            for(int i = 1; i < 2*number_individuals; i+=2){
-                genotypes[i] = '\t';
-                blank_line[i] = '\t';
-                blank_line[i-1] = '0';
+            for(int i = 0; i <= 2*number_individuals; i+=2){
+                genotypes[i] = 'x';
+                genotypes[i+1] = '\t';
+
+                blank_line[i] = '0';
+                blank_line[i+1] = '\t';
             }
             genotypes[number_individuals*2] = '\0';
             blank_line[number_individuals*2] = '\0';
@@ -121,14 +129,14 @@ class VCF_File
                 genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
                 if(none_valid && genotypes[ind] != '9')
                     none_valid = false;
-                //read to next token
+                // read to next token
                 ind += 2;
                 while(*ptr != '\t' && *ptr != '\0'){
                     ptr++;
                 }
-                if(*ptr == '\0')
+                // the check for newlines will handle tabs before newlines
+                if(*ptr == '\0' || *(++ptr) == '\n')
                     break;
-                ptr++;
             }
             // return true of skip is false or
             // if skip is false but at least one informative found
@@ -186,17 +194,20 @@ int main(int argc, char *argv[])
 
     // error if any unset
     if (archaic_vcf == NULL){
-        printf("Missing archaic vcf file input. Please provide valid '-a'\n");
+        fprintf(stderr,
+                "Missing archaic vcf file input. Please provide valid '-a'\n");
         print_options();
         exit(1);
     }
     if (output == NULL){
-        printf("Missing output. Please provide '-o'\n");
+        fprintf(stderr,
+                "Missing output. Please provide '-o'\n");
         print_options();
         exit(1);
     }
     if (modern_vcf == NULL){
-        printf("Missing modern vcf file input. Please provide valid '-m'\n");
+        fprintf(stderr,
+                "Missing modern vcf file input. Please provide valid '-m'\n");
         print_options();
         exit(1);
     }
