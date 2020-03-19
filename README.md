@@ -34,6 +34,8 @@ requires no compilation.
 
 ### Usage Details
 Note that all chromosomes must be integers in the input vcfs and masked bed files.
+Vcf and mask files should be split by chromosome.  See the included snakefile as
+and example pipeline implementation.
 
 #### Generate Genotype
 `generate_gt` has the following options:
