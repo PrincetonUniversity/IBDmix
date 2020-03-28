@@ -1,7 +1,4 @@
-#include <stdlib.h>
-#include <string.h>
 #include "IBDmix/IBD_Collection.h"
-#include "IBDmix/Genotype_Reader.h"
 
 IBD_Collection::IBD_Collection(){
     num_samples = 0;
@@ -18,7 +15,7 @@ void IBD_Collection::initialize(int num_samples, double threshold,
     }
 }
 
-void IBD_Collection::update(Genotype_Reader &reader, FILE * output){
+void IBD_Collection::update(Genotype_Reader &reader, std::ostream &output){
     for(int i = 0; i < num_samples; i++){
         IBDs[i].add_lod(reader.chromosome,
                 reader.position,
@@ -28,7 +25,7 @@ void IBD_Collection::update(Genotype_Reader &reader, FILE * output){
     }
 }
 
-void IBD_Collection::purge(FILE * output){
+void IBD_Collection::purge(std::ostream &output){
     for(int i = 0; i < num_samples; i++)
         IBDs[i].purge(output);
 }

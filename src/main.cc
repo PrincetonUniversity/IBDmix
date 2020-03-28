@@ -1,5 +1,7 @@
 #include <getopt.h>
 #include <iostream>
+#include <fstream>
+
 #include <string.h>
 #include <stdio.h>
 #include "IBDmix/IBD_Collection.h"
@@ -68,8 +70,8 @@ void print_options(void){
 int main(int argc, char *argv[]){
     FILE *genotype = nullptr,
          *sample = nullptr,
-         *mask = nullptr,
-         *output = nullptr;
+         *mask = nullptr;
+    std::string outfile = "-";
     int ma_threshold = 1;
     char * archaic = nullptr;
     double LOD_threshold = 3.0,
@@ -99,7 +101,7 @@ int main(int argc, char *argv[]){
         {0, 0, 0, 0}
     };
     char c;
-    while ((c = getopt_long(argc, argv, "hg:s:a:o:d:m:a:e:c:r:",
+    while ((c = getopt_long(argc, argv, "hg:s:a:o:d:m:a:e:c:r:it",
                     long_opts, nullptr)) != -1) {
         switch (c) {
             case 'h':
@@ -114,7 +116,7 @@ int main(int argc, char *argv[]){
                 genotype = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "r");
                 break;
             case 'o':
-                output = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "w");
+                outfile = optarg;
                 break;
             case 's':
                 sample = strcmp(optarg, "-") == 0 ? stdout : fopen(optarg, "r");
@@ -139,20 +141,24 @@ int main(int argc, char *argv[]){
         print_options();
         exit(1);
     }
-    if (output == nullptr){
-        printf("Missing output file. Please provide valid '-o'\n");
-        print_options();
-        exit(1);
+
+    std::ofstream of;
+    std::streambuf * buf;
+    if (outfile == "-"){
+        buf = std::cout.rdbuf();
     }
+    else{
+        of.open(outfile);
+        buf = of.rdbuf();
+    }
+    std::ostream output(buf);
 
     // write header
-    fprintf(output, "%s\t%s\t%s\t%s\t%s",
-            "ID", "chrom", "start", "end", "slod");
+    output << "ID\tchrom\tstart\tend\tslod";
     if (more_stats == true)
-        fprintf(output, "\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                "sites", "mask_and_maf", "in_mask", "maf_low",
-                "maf_high", "rec_2_0", "rec_0_2");
-    fprintf(output, "\n");
+        output <<  "\tsites\tmask_and_maf\tin_mask\t"
+            << "maf_low\tmaf_high\trec_2_0\trec_0_2";
+    output << '\n';
     Genotype_Reader reader = Genotype_Reader(
             genotype,
             mask,
@@ -184,8 +190,8 @@ int main(int argc, char *argv[]){
         fclose(genotype);
     if(mask != nullptr)
         fclose(mask);
-    if(output != nullptr)
-        fclose(output);
+    if(of.is_open())
+        of.close();
 
     free_stack();
 }

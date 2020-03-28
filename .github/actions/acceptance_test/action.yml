@@ -1,0 +1,11 @@
+description: 'Run acceptance test on data hosted through tigress-web'
+inputs:
+  type:
+    description: 'Type to run'
+    required: true
+name: 'Compare with Legacy'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.type }}

@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
 #include "IBDmix/IBD_Segment.h"
 #include "IBDmix/Genotype_Reader.h"
 
@@ -14,6 +16,6 @@ class IBD_Collection{
         void initialize(int num_samples, double threshold,
                 Genotype_Reader &reader, bool exclusive_end=true,
                 bool more_stats=false);
-        void update(Genotype_Reader &reader, FILE * output);
-        void purge(FILE * output);
+        void update(Genotype_Reader &reader, std::ostream &output);
+        void purge(std::ostream &output);
 };

@@ -29,7 +29,6 @@ Genotype_Reader::Genotype_Reader(FILE * genotype, FILE * mask,
     lod_cache = new double[3];
     mask_chromosome = -1; // force read on first check
 
-
     both = num_lines = count_in_mask = fail_maf = count_recovered = 0;
     frac_rec = 0;
 }

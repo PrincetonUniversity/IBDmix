@@ -17,3 +17,4 @@ endmacro()
 
 package_add_test(ibd_node_test test_IBD_node.cc ibd_stack)
 package_add_test(ibd_segment_test test_IBD_segment.cc ibd_segment)
+package_add_test(genotype_reader_test test_Genotype_Reader.cc genotype_reader)

@@ -1,68 +1,87 @@
-#define BOOST_TEST_MODULE Genotype_Reader
-#include <boost/test/included/unit_test.hpp>
-#include "../IBDmix/Genotype_Reader.hpp"
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
 
-BOOST_AUTO_TEST_CASE(setup){
-    std::ofstream genotype;
-    genotype.open("test_genotype.txt");
-    genotype << "chrom\tpos\tref\talt\tn1\tm1\tm2\tm3\tm4\n"
-        << "1\t2\tA\tT\t1\t0\t0\t0\t0\n"
-        << "1\t3\tA\tT\t2\t0\t0\t0\t0\n"
-        << "1\t4\tA\tT\t1\t0\t1\t1\t1\n"
-        << "1\t104\tA\tT\t1\t0\t1\t1\t1\n"
-        << "1\t105\tA\tT\t0\t2\t1\t1\t1\n"
-        << "2\t125\tA\tT\t0\t2\t2\t1\t1\n"
-        << "3\t126\tA\tT\t0\t2\t2\t2\t2\n"
-        ;
-    genotype.close();
+#include "IBDmix/Genotype_Reader.h"
+
+// TODO this uses some private variables, either need to expose or change tests
+class SampleGenotype : public ::testing::Test {
+    protected:
+        void SetUp() {
+            std::ofstream genotype;
+            genotype.open("test_genotype.txt");
+            genotype << "chrom\tpos\tref\talt\tn1\tm1\tm2\tm3\tm4\n"
+                << "1\t2\tA\tT\t1\t0\t0\t0\t0\n"
+                << "1\t3\tA\tT\t2\t0\t0\t0\t0\n"
+                << "1\t4\tA\tT\t1\t0\t1\t1\t1\n"
+                << "1\t104\tA\tT\t1\t0\t1\t1\t1\n"
+                << "1\t105\tA\tT\t0\t2\t1\t1\t1\n"
+                << "2\t125\tA\tT\t0\t2\t2\t1\t1\n"
+                << "3\t126\tA\tT\t0\t2\t2\t2\t2\n"
+                ;
+            genotype.close();
+            std::ofstream mask;
+            mask.open("test_mask.txt");
+            mask << "1 100 120\n"
+                << "1 130 140\n"
+                << "1 160 161\n"
+                << "1 190 200\n"
+                << "1 260 281\n"
+                << "2 130 140\n"
+                << "4 130 140\n"
+                << "8 130 140\n"
+                ;
+            mask.close();
+        }
+        void TearDown() {
+            remove("test_genotype.txt");
+            remove("test_mask.txt");
+        }
 }
 
-BOOST_AUTO_TEST_CASE(test_initializer)
-{
+TEST_F(SampleGenotype, CanInitialize){
     FILE * file = fopen("test_genotype.txt", "rt");
     // use explicit values in case defaults change
     Genotype_Reader reader = Genotype_Reader(
             file, nullptr, 0.01, 0.002, 2, 1e-200);
-    BOOST_REQUIRE_EQUAL(4, reader.initialize_arrays(nullptr));
+    REQUIRE_EQ(4, reader.initialize_arrays(nullptr));
     rewind(file);
     std::ofstream samples;
     samples.open("test_samples.txt");
     samples << "m2\nm4\n";
     samples.close();
-    BOOST_REQUIRE_EQUAL(2, reader.initialize_arrays(fopen("test_samples.txt", "rt")));
+    REQUIRE_EQ(2, reader.initialize_arrays(fopen("test_samples.txt", "rt")));
     rewind(file);
     samples.open("test_samples.txt");
     samples << "m2\nm4";
     samples.close();
-    BOOST_REQUIRE_EQUAL(2, reader.initialize_arrays(fopen("test_samples.txt", "rt")));
+    REQUIRE_EQ(2, reader.initialize_arrays(fopen("test_samples.txt", "rt")));
     rewind(file);
     samples.open("test_samples.txt");
     samples << "m2";
     samples.close();
-    BOOST_REQUIRE_EQUAL(1, reader.initialize_arrays(fopen("test_samples.txt", "rt")));
+    REQUIRE_EQ(1, reader.initialize_arrays(fopen("test_samples.txt", "rt")));
 }
 
-BOOST_AUTO_TEST_CASE(test_find_token)
-{
-    BOOST_REQUIRE_EQUAL(2, find_token("tes", "test\tte\ttes"));
-    BOOST_REQUIRE_EQUAL(-1, find_token("not in", "test\tstring\t"));
-    BOOST_REQUIRE_EQUAL(0, find_token("test", "test\tstring\t"));
-    BOOST_REQUIRE_EQUAL(1, find_token("string", "test\tstring\t"));
-    BOOST_REQUIRE_EQUAL(1, find_token("string", "test\tstring"));
-    BOOST_REQUIRE_EQUAL(1, find_token("string\tthing", "test\tstring"));
-    BOOST_REQUIRE_EQUAL(1, find_token("string\tthing", "test\tstring\tthings"));
-    BOOST_REQUIRE_EQUAL(-1, find_token("strinG", "test\tstring"));
-    BOOST_REQUIRE_EQUAL(-1, find_token("string", "test\tstrinG"));
-    BOOST_REQUIRE_EQUAL(-1, find_token("string1", "test\tstring"));
-    BOOST_REQUIRE_EQUAL(-1, find_token("string", "test\tstring1"));
-    BOOST_REQUIRE_EQUAL(-1, find_token("String", "test\tstring1"));
-    BOOST_REQUIRE_EQUAL(-1, find_token("\0", "test\tstring1"));
+TEST(TestGenotypeReader, CanFindToken){
+    REQUIRE_EQ(2, find_token("tes", "test\tte\ttes"));
+    REQUIRE_EQ(-1, find_token("not in", "test\tstring\t"));
+    REQUIRE_EQ(0, find_token("test", "test\tstring\t"));
+    REQUIRE_EQ(1, find_token("string", "test\tstring\t"));
+    REQUIRE_EQ(1, find_token("string", "test\tstring"));
+    REQUIRE_EQ(1, find_token("string\tthing", "test\tstring"));
+    REQUIRE_EQ(1, find_token("string\tthing", "test\tstring\tthings"));
+    REQUIRE_EQ(-1, find_token("strinG", "test\tstring"));
+    REQUIRE_EQ(-1, find_token("string", "test\tstrinG"));
+    REQUIRE_EQ(-1, find_token("string1", "test\tstring"));
+    REQUIRE_EQ(-1, find_token("string", "test\tstring1"));
+    REQUIRE_EQ(-1, find_token("String", "test\tstring1"));
+    REQUIRE_EQ(-1, find_token("\0", "test\tstring1"));
 }
 
-BOOST_AUTO_TEST_CASE(test_find_archaic)
-{
+TEST(TestGenotypeReader, CanFindArchaic){
     Genotype_Reader reader = Genotype_Reader(nullptr);
     reader.samples = new char[100];
     reader.buffer = new char[100];
@@ -71,39 +90,38 @@ BOOST_AUTO_TEST_CASE(test_find_archaic)
     // test both null, delete first token in samples
     strcpy(reader.samples, "n1\ts1\ts2");
     reader.find_archaic(nullptr, nullptr);
-    BOOST_REQUIRE_EQUAL(0, reader.archaic_index);
-    BOOST_REQUIRE_EQUAL(reader.samples,  "s1\ts2");
+    REQUIRE_EQ(0, reader.archaic_index);
+    REQUIRE_EQ(reader.samples,  "s1\ts2");
 
     // test with sample line, delete nothing
     strcpy(reader.samples, "n1\ts1\ts2");
     reader.find_archaic(nullptr, "");
-    BOOST_REQUIRE_EQUAL(0, reader.archaic_index);
-    BOOST_REQUIRE_EQUAL(reader.samples,  "n1\ts1\ts2");
+    REQUIRE_EQ(0, reader.archaic_index);
+    REQUIRE_EQ(reader.samples,  "n1\ts1\ts2");
 
     // test with archaic
     strcpy(reader.samples, "n1\ts1\ts2");
     reader.find_archaic("s1", nullptr);
-    BOOST_REQUIRE_EQUAL(1, reader.archaic_index);
-    BOOST_REQUIRE_EQUAL(reader.samples,  "n1\ts2");
+    REQUIRE_EQ(1, reader.archaic_index);
+    REQUIRE_EQ(reader.samples,  "n1\ts2");
 
     strcpy(reader.samples, "n1\ts1\ts2");
     reader.find_archaic("s2", nullptr);
-    BOOST_REQUIRE_EQUAL(2, reader.archaic_index);
-    BOOST_REQUIRE_EQUAL(reader.samples,  "n1\ts1\t");
+    REQUIRE_EQ(2, reader.archaic_index);
+    REQUIRE_EQ(reader.samples,  "n1\ts1\t");
 
     strcpy(reader.samples, "n1\ts1\ts2\t");
     reader.find_archaic("s2", nullptr);
-    BOOST_REQUIRE_EQUAL(2, reader.archaic_index);
-    BOOST_REQUIRE_EQUAL(reader.samples,  "n1\ts1\t");
+    REQUIRE_EQ(2, reader.archaic_index);
+    REQUIRE_EQ(reader.samples,  "n1\ts1\t");
 
     strcpy(reader.samples, "n1\ts1\ts2\t");
     reader.find_archaic("s2", "");
-    BOOST_REQUIRE_EQUAL(2, reader.archaic_index);
-    BOOST_REQUIRE_EQUAL(reader.samples,  "n1\ts1\ts2\t");
+    REQUIRE_EQ(2, reader.archaic_index);
+    REQUIRE_EQ(reader.samples,  "n1\ts1\ts2\t");
 }
 
-BOOST_AUTO_TEST_CASE(test_determine_sample_mapping)
-{
+TEST(TestGenotypeReader, CanDetermineSampleMapping){
     Genotype_Reader reader = Genotype_Reader(nullptr);
     reader.buffer = new char[100];
     strcpy(reader.buffer, "n1\ts1\ts2");
@@ -113,35 +131,34 @@ BOOST_AUTO_TEST_CASE(test_determine_sample_mapping)
     reader.archaic_index = 0;
     reader.determine_sample_mapping(NULL);
     for(int i = 0; i < reader.num_samples; i++)
-        BOOST_REQUIRE_EQUAL(i+1, reader.sample_to_index[i]);
+        REQUIRE_EQ(i+1, reader.sample_to_index[i]);
 
     reader.archaic_index = 10;
     reader.determine_sample_mapping(NULL);
     for(int i = 0; i < reader.num_samples; i++)
-        BOOST_REQUIRE_EQUAL(i, reader.sample_to_index[i]);
+        REQUIRE_EQ(i, reader.sample_to_index[i]);
 
     reader.archaic_index = 5;
     reader.determine_sample_mapping(NULL);
     for(int i = 0; i < 5; i++)
-        BOOST_REQUIRE_EQUAL(i, reader.sample_to_index[i]);
+        REQUIRE_EQ(i, reader.sample_to_index[i]);
     for(int i = 5; i < reader.num_samples; i++)
-        BOOST_REQUIRE_EQUAL(i+1, reader.sample_to_index[i]);
+        REQUIRE_EQ(i+1, reader.sample_to_index[i]);
 
     strcpy(reader.buffer, "n1\ts1\ts2\ts3\ts4\ts5\ts6\ts7");
     reader.num_samples = 3;
     reader.determine_sample_mapping("s6\tn1\ts3");
     int result[] = {6, 0, 3};
     for(int i = 0; i < reader.num_samples; i++)
-        BOOST_REQUIRE_EQUAL(result[i], reader.sample_to_index[i]);
+        REQUIRE_EQ(result[i], reader.sample_to_index[i]);
 
     reader.determine_sample_mapping("s1\ts1\ts1");
     int result2[] = {1, 1, 1};
     for(int i = 0; i < reader.num_samples; i++)
-        BOOST_REQUIRE_EQUAL(result2[i], reader.sample_to_index[i]);
+        REQUIRE_EQ(result2[i], reader.sample_to_index[i]);
 }
 
-BOOST_AUTO_TEST_CASE(test_yield_sample)
-{
+TEST(TestGenotypeReader, CanYieldSample){
     Genotype_Reader reader = Genotype_Reader(nullptr);
     reader.num_samples = 3;
     reader.samples = new char[100];
@@ -149,17 +166,17 @@ BOOST_AUTO_TEST_CASE(test_yield_sample)
     char *ptr = nullptr;
     int count = 0;
 
-    BOOST_REQUIRE(reader.yield_sample(ptr, count++));
-    BOOST_REQUIRE_EQUAL(ptr, "n1");
+    REQUIRE_TRUE(reader.yield_sample(ptr, count++));
+    REQUIRE_EQ(ptr, "n1");
 
-    BOOST_REQUIRE(reader.yield_sample(ptr, count++));
-    BOOST_REQUIRE_EQUAL(ptr, "s1");
+    REQUIRE_TRUE(reader.yield_sample(ptr, count++));
+    REQUIRE_EQ(ptr, "s1");
 
-    BOOST_REQUIRE(reader.yield_sample(ptr, count++));
-    BOOST_REQUIRE_EQUAL(ptr, "s2");
+    REQUIRE_TRUE(reader.yield_sample(ptr, count++));
+    REQUIRE_EQ(ptr, "s2");
 
-    BOOST_REQUIRE(!reader.yield_sample(ptr, count++));
-    BOOST_REQUIRE_EQUAL(reader.samples, "n1\ts1\ts2");
+    REQUIRE_TRUE(!reader.yield_sample(ptr, count++));
+    REQUIRE_EQ(reader.samples, "n1\ts1\ts2");
 }
 
 double original_cal_lod(int source_gt, int target_gt, double pb, double aerr, double merr,
@@ -194,8 +211,7 @@ double original_cal_lod(int source_gt, int target_gt, double pb, double aerr, do
     return 0;
 }
 
-BOOST_AUTO_TEST_CASE(test_calculate_lod)
-{
+TEST(TestGenotypeReader, CanCalculateLod){
     Genotype_Reader reader = Genotype_Reader(nullptr);
 
     double pbs[] = {0, 0.01, 0.05, 0.1, 0.5, 0.9, 0.99, 1};
@@ -213,7 +229,7 @@ BOOST_AUTO_TEST_CASE(test_calculate_lod)
                 double orig = original_cal_lod(arch-'0', mod-'0', pb, aerr, merr, minesp);
                 if(isinf(read) && isinf(orig))
                     continue;
-                BOOST_REQUIRE_CLOSE(read, orig, 0.00001);
+                ASSERT_DOUBLE_EQ(read, orig);
             }
             reader.update_lod_cache(arch, pb, merr, false); // not selected
             for(char mod : gts){
@@ -228,18 +244,17 @@ BOOST_AUTO_TEST_CASE(test_calculate_lod)
                     //        << "reader=" << read
                     //        << "\norig=  " << orig
                     //        << "\n";
-                    BOOST_REQUIRE_CLOSE(read, orig, 0.00001);
+                    ASSERT_DOUBLE_EQ(read, orig);
                 }
                 else{
-                    BOOST_REQUIRE_EQUAL(0, read);
+                    REQUIRE_EQ(0, read);
                 }
             }
         }
 
 }
 
-BOOST_AUTO_TEST_CASE(test_get_frequency)
-{
+TEST(TestGenotypeReader, CanGetFrequency){
     double result = 0;
     Genotype_Reader reader = Genotype_Reader(nullptr);
     reader.sample_to_index = new int[4];
@@ -251,50 +266,50 @@ BOOST_AUTO_TEST_CASE(test_get_frequency)
 
     strcpy(reader.buffer, "0 0 1 0 0");
     // fail since cutoff too low
-    BOOST_REQUIRE(!reader.get_frequency(result));
+    REQUIRE_TRUE(!reader.get_frequency(result));
     reader.minor_allele_cutoff = 0;
-    BOOST_REQUIRE(reader.get_frequency(result));
-    BOOST_REQUIRE_EQUAL(0.125, result);
+    REQUIRE_TRUE(reader.get_frequency(result));
+    REQUIRE_EQ(0.125, result);
 
     reader.minor_allele_cutoff = 1;
     strcpy(reader.buffer, "0 0 2 0 0");
-    BOOST_REQUIRE(reader.get_frequency(result));
-    BOOST_REQUIRE_EQUAL(0.25, result);
+    REQUIRE_TRUE(reader.get_frequency(result));
+    REQUIRE_EQ(0.25, result);
 
     reader.minor_allele_cutoff = 0;
     strcpy(reader.buffer, "0 0 2 9 9");
-    BOOST_REQUIRE(reader.get_frequency(result));
-    BOOST_REQUIRE_EQUAL(0.5, result);
+    REQUIRE_TRUE(reader.get_frequency(result));
+    REQUIRE_EQ(0.5, result);
 
     strcpy(reader.buffer, "0 9 2 9 9");
-    BOOST_REQUIRE(!reader.get_frequency(result));
-    BOOST_REQUIRE_EQUAL(1, result);
+    REQUIRE_TRUE(!reader.get_frequency(result));
+    REQUIRE_EQ(1, result);
 
     strcpy(reader.buffer, "0 9 9 9 9");
-    BOOST_REQUIRE(!reader.get_frequency(result));
-    BOOST_REQUIRE_EQUAL(0, result);
+    REQUIRE_TRUE(!reader.get_frequency(result));
+    REQUIRE_EQ(0, result);
 
     strcpy(reader.buffer, "0 0 0 0 0");
-    BOOST_REQUIRE(!reader.get_frequency(result));
-    BOOST_REQUIRE_EQUAL(0, result);
+    REQUIRE_TRUE(!reader.get_frequency(result));
+    REQUIRE_EQ(0, result);
 
 }
 
-BOOST_AUTO_TEST_CASE(test_get_modern_error)
+TEST(TestGenotypeReader, CanGetModernError){
 {
     Genotype_Reader reader = Genotype_Reader(nullptr);
     reader.modern_error_max = 0.1;
     reader.modern_error_proportion = 2;
 
-    BOOST_REQUIRE_CLOSE(0.1, reader.get_modern_error(0.4), 0.00001);
-    BOOST_REQUIRE_CLOSE(0.1, reader.get_modern_error(0.6), 0.00001);
-    BOOST_REQUIRE_CLOSE(0.1, reader.get_modern_error(0.1), 0.00001);
-    BOOST_REQUIRE_CLOSE(0.1, reader.get_modern_error(0.9), 0.00001);
-    BOOST_REQUIRE_CLOSE(0.02, reader.get_modern_error(0.01), 0.00001);
-    BOOST_REQUIRE_CLOSE(0.02, reader.get_modern_error(0.99), 0.00001);
+    ASSERT_DOUBLE_EQ(0.1, reader.get_modern_error(0.4));
+    ASSERT_DOUBLE_EQ(0.1, reader.get_modern_error(0.6));
+    ASSERT_DOUBLE_EQ(0.1, reader.get_modern_error(0.1));
+    ASSERT_DOUBLE_EQ(0.1, reader.get_modern_error(0.9));
+    ASSERT_DOUBLE_EQ(0.02, reader.get_modern_error(0.01));
+    ASSERT_DOUBLE_EQ(0.02, reader.get_modern_error(0.99));
 }
 
-BOOST_AUTO_TEST_CASE(test_process_line_buffer){
+TEST(TestGenotypeReader, CanProcessLineBuffer){
     Genotype_Reader reader = Genotype_Reader(nullptr);
     reader.buffer = new char[100];
     reader.num_samples = 4;
@@ -308,7 +323,7 @@ BOOST_AUTO_TEST_CASE(test_process_line_buffer){
     reader.process_line_buffer(true);
     double result[] = {0, -1.617, 0.00432, 0.300};
     for(int i = 0; i < 4; i++)
-        BOOST_REQUIRE_CLOSE(result[i], reader.lod_scores[i], 0.1);
+        ASSERT_DOUBLE_EQ(result[i], reader.lod_scores[i]);
 
     reader.process_line_buffer(false);
     result[0] = 0;
@@ -316,22 +331,22 @@ BOOST_AUTO_TEST_CASE(test_process_line_buffer){
     result[2] = 0;
     result[3] = 0;
     for(int i = 0; i < 4; i++)
-        BOOST_REQUIRE_CLOSE(result[i], reader.lod_scores[i], 0.1);
+        ASSERT_DOUBLE_EQ(result[i], reader.lod_scores[i]);
 
     strcpy(reader.buffer, "9 0 1 2 9");
     reader.process_line_buffer(true);
     result[1] = 0;
     for(int i = 0; i < 4; i++)
-        BOOST_REQUIRE_CLOSE(result[i], reader.lod_scores[i], 0.1);
+        ASSERT_DOUBLE_EQ(result[i], reader.lod_scores[i]);
 
     reader.process_line_buffer(false);
     for(int i = 0; i < 4; i++)
-        BOOST_REQUIRE_CLOSE(result[i], reader.lod_scores[i], 0.1);
+        ASSERT_DOUBLE_EQ(result[i], reader.lod_scores[i]);
 
     strcpy(reader.buffer, "0 0 1 0 9");
     reader.process_line_buffer(true);
     for(int i = 0; i < 4; i++)
-        BOOST_REQUIRE_CLOSE(result[i], reader.lod_scores[i], 0.1);
+        ASSERT_DOUBLE_EQ(result[i], reader.lod_scores[i]);
 
     strcpy(reader.buffer, "1 1 1 2 9");
     reader.process_line_buffer(true);
@@ -339,210 +354,198 @@ BOOST_AUTO_TEST_CASE(test_process_line_buffer){
     result[2] = 0.34366;
     result[3] = 0.34366;
     for(int i = 0; i < 4; i++)
-        BOOST_REQUIRE_CLOSE(result[i], reader.lod_scores[i], 0.1);
+        ASSERT_DOUBLE_EQ(result[i], reader.lod_scores[i]);
         //std::cout << reader.lod_scores[i] << "\n";
 }
 
-BOOST_AUTO_TEST_CASE(test_in_mask){
-    std::ofstream mask;
-    mask.open("test_mask.txt");
-    mask << "1 100 120\n"
-        << "1 130 140\n"
-        << "1 160 161\n"
-        << "1 190 200\n"
-        << "1 260 281\n"
-        << "2 130 140\n"
-        << "4 130 140\n"
-        << "8 130 140\n"
-        ;
-    mask.close();
+TEST_F(SampleGenotype, CanTestInMask){
     Genotype_Reader reader = Genotype_Reader(
             nullptr, fopen("test_mask.txt", "rt"));
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, -1);
+    REQUIRE_EQ(reader.mask_chromosome, -1);
 
     reader.chromosome = 1;
     reader.position = 90;
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 1);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 100);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 120);
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 1);
+    REQUIRE_EQ(reader.mask_start, 100);
+    REQUIRE_EQ(reader.mask_end, 120);
 
     // check same position
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
 
     // should not update mask
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 1);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 100);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 120);
+    REQUIRE_EQ(reader.mask_chromosome, 1);
+    REQUIRE_EQ(reader.mask_start, 100);
+    REQUIRE_EQ(reader.mask_end, 120);
 
     reader.position = 100;
-    BOOST_REQUIRE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
 
     reader.position = 101;
-    BOOST_REQUIRE(reader.in_mask());
+    REQUIRE_TRUE(reader.in_mask());
 
     reader.position = 102;
-    BOOST_REQUIRE(reader.in_mask());
+    REQUIRE_TRUE(reader.in_mask());
 
     reader.position = 120;
-    BOOST_REQUIRE(reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 1);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 100);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 120);
+    REQUIRE_TRUE(reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 1);
+    REQUIRE_EQ(reader.mask_start, 100);
+    REQUIRE_EQ(reader.mask_end, 120);
 
     // skip a range
     reader.position = 161;
-    BOOST_REQUIRE(reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 1);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 160);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 161);
+    REQUIRE_TRUE(reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 1);
+    REQUIRE_EQ(reader.mask_start, 160);
+    REQUIRE_EQ(reader.mask_end, 161);
 
     reader.position = 261;
-    BOOST_REQUIRE(reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 1);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 260);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 281);
+    REQUIRE_TRUE(reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 1);
+    REQUIRE_EQ(reader.mask_start, 260);
+    REQUIRE_EQ(reader.mask_end, 281);
     
     //skip chromosomes
     reader.chromosome = 2;
     reader.position = 130;
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 2);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 130);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 140);
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 2);
+    REQUIRE_EQ(reader.mask_start, 130);
+    REQUIRE_EQ(reader.mask_end, 140);
 
     reader.chromosome = 3;
     reader.position = 130;
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 4);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 130);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 140);
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 4);
+    REQUIRE_EQ(reader.mask_start, 130);
+    REQUIRE_EQ(reader.mask_end, 140);
 
     reader.chromosome = 4;
     reader.position = 131;
-    BOOST_REQUIRE(reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 4);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 130);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 140);
+    REQUIRE_TRUE(reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 4);
+    REQUIRE_EQ(reader.mask_start, 130);
+    REQUIRE_EQ(reader.mask_end, 140);
 
     reader.chromosome = 5;
     reader.position = 131;
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 8);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 130);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 140);
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 8);
+    REQUIRE_EQ(reader.mask_start, 130);
+    REQUIRE_EQ(reader.mask_end, 140);
 
     reader.chromosome = 6;
     reader.position = 131;
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 8);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 130);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 140);
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 8);
+    REQUIRE_EQ(reader.mask_start, 130);
+    REQUIRE_EQ(reader.mask_end, 140);
 
     reader.chromosome = 8;
     reader.position = 131;
-    BOOST_REQUIRE(reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 8);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 130);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 140);
+    REQUIRE_TRUE(reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 8);
+    REQUIRE_EQ(reader.mask_start, 130);
+    REQUIRE_EQ(reader.mask_end, 140);
 
     reader.chromosome = 9;
     reader.position = 131;
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE(!reader.in_mask());
-    BOOST_REQUIRE_EQUAL(reader.mask_chromosome, 8);
-    BOOST_REQUIRE_EQUAL(reader.mask_start, 130);
-    BOOST_REQUIRE_EQUAL(reader.mask_end, 140);
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
+    REQUIRE_EQ(reader.mask_chromosome, 8);
+    REQUIRE_EQ(reader.mask_start, 130);
+    REQUIRE_EQ(reader.mask_end, 140);
 
     reader.chromosome = 8;
     // still retain the last read values (not actual use case)
-    BOOST_REQUIRE(reader.in_mask());
+    REQUIRE_TRUE(reader.in_mask());
     fclose(reader.mask);
     // setting mask to null should short the region check
     reader.mask = nullptr;
-    BOOST_REQUIRE(!reader.in_mask());
+    REQUIRE_TRUE(!reader.in_mask());
 }
 
-BOOST_AUTO_TEST_CASE(test_update_defaults)
+TEST_F(SampleGenotype, CanUpdateDefaults)
 {
     Genotype_Reader reader = Genotype_Reader(fopen("test_genotype.txt", "rt"));
     reader.initialize_arrays();
-    BOOST_REQUIRE_EQUAL(4, reader.num_samples);
+    REQUIRE_EQ(4, reader.num_samples);
 
     //"1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(2, reader.position);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(2, reader.position);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
 
     // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check, 2/0 override
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(3, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(3, reader.position);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[3]);
 
     // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(4, reader.position);
-    BOOST_REQUIRE_CLOSE(0.195605, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(4, reader.position);
+    ASSERT_DOUBLE_EQ(0.195605, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[3]);
 
     // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" same as above
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(104, reader.position);
-    BOOST_REQUIRE_CLOSE(0.195605, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(104, reader.position);
+    ASSERT_DOUBLE_EQ(0.195605, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[3]);
 
     // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  passes check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(105, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.713827, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.127177, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.127177, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.127177, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(105, reader.position);
+    ASSERT_DOUBLE_EQ(-1.713827, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0.127177, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0.127177, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0.127177, reader.lod_scores[3]);
 
     // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(2, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(125, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.79301, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.79301, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.301874, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.301874, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(2, reader.chromosome);
+    REQUIRE_EQ(125, reader.position);
+    ASSERT_DOUBLE_EQ(-1.79301, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(-1.79301, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0.301874, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0.301874, reader.lod_scores[3]);
 
     // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(3, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(126, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(3, reader.chromosome);
+    REQUIRE_EQ(126, reader.position);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[3]);
 
     // eof
-    BOOST_REQUIRE(!reader.update());
-    BOOST_REQUIRE(!reader.update());
-    BOOST_REQUIRE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
 }
 
-BOOST_AUTO_TEST_CASE(test_update_samples)
+TEST_F(SampleGenotype, CanUpdateSamples)
 {
     Genotype_Reader reader = Genotype_Reader(fopen("test_genotype.txt", "rt"));
     std::ofstream samples;
@@ -550,136 +553,136 @@ BOOST_AUTO_TEST_CASE(test_update_samples)
     samples << "m4\nm2\n";
     samples.close();
     reader.initialize_arrays(fopen("test_samples.txt", "rt"), "m1");
-    BOOST_REQUIRE_EQUAL(2, reader.num_samples);
+    REQUIRE_EQ(2, reader.num_samples);
 
     //"1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(2, reader.position);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(2, reader.position);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
 
     // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(3, reader.position);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(3, reader.position);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
 
     // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(4, reader.position);
-    BOOST_REQUIRE_CLOSE(0.00432094, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.00432094, reader.lod_scores[1], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(4, reader.position);
+    ASSERT_DOUBLE_EQ(0.00432094, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0.00432094, reader.lod_scores[1]);
 
     // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" same as above
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(104, reader.position);
-    BOOST_REQUIRE_CLOSE(0.00432094, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.00432094, reader.lod_scores[1], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(104, reader.position);
+    ASSERT_DOUBLE_EQ(0.00432094, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0.00432094, reader.lod_scores[1]);
 
     // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  passes check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(105, reader.position);
-    BOOST_REQUIRE_CLOSE(0.00432094, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.00432094, reader.lod_scores[1], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(105, reader.position);
+    ASSERT_DOUBLE_EQ(0.00432094, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0.00432094, reader.lod_scores[1]);
 
     // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(2, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(125, reader.position);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(2, reader.chromosome);
+    REQUIRE_EQ(125, reader.position);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
 
     // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(3, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(126, reader.position);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(3, reader.chromosome);
+    REQUIRE_EQ(126, reader.position);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
 
     // eof
-    BOOST_REQUIRE(!reader.update());
-    BOOST_REQUIRE(!reader.update());
-    BOOST_REQUIRE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
 }
 
-BOOST_AUTO_TEST_CASE(test_update_mask)
+TEST_F(SampleGenotype, CanUpdateMask)
 {
     Genotype_Reader reader = Genotype_Reader(
             fopen("test_genotype.txt", "rt"),
             fopen("test_mask.txt", "rt"));
     reader.initialize_arrays();
-    BOOST_REQUIRE_EQUAL(4, reader.num_samples);
+    REQUIRE_EQ(4, reader.num_samples);
 
     //"1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(2, reader.position);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(2, reader.position);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
 
     // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check, 2/0 override
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(3, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(3, reader.position);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[3]);
 
     // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(4, reader.position);
-    BOOST_REQUIRE_CLOSE(0.195605, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.320544, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(4, reader.position);
+    ASSERT_DOUBLE_EQ(0.195605, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0.320544, reader.lod_scores[3]);
 
     // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" in mask
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(104, reader.position);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(104, reader.position);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
 
     // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  in mask, 0, 2 override
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(1, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(105, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.713827, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(1, reader.chromosome);
+    REQUIRE_EQ(105, reader.position);
+    ASSERT_DOUBLE_EQ(-1.713827, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
 
     // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(2, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(125, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.79301, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.79301, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.301874, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(0.301874, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(2, reader.chromosome);
+    REQUIRE_EQ(125, reader.position);
+    ASSERT_DOUBLE_EQ(-1.79301, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(-1.79301, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(0.301874, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(0.301874, reader.lod_scores[3]);
 
     // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
-    BOOST_REQUIRE(reader.update());
-    BOOST_REQUIRE_EQUAL(3, reader.chromosome);
-    BOOST_REQUIRE_EQUAL(126, reader.position);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[0], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[1], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[2], 0.0001);
-    BOOST_REQUIRE_CLOSE(-1.99568, reader.lod_scores[3], 0.0001);
+    REQUIRE_TRUE(reader.update());
+    REQUIRE_EQ(3, reader.chromosome);
+    REQUIRE_EQ(126, reader.position);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[0]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[1]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[2]);
+    ASSERT_DOUBLE_EQ(-1.99568, reader.lod_scores[3]);
 
     // eof
-    BOOST_REQUIRE(!reader.update());
-    BOOST_REQUIRE(!reader.update());
-    BOOST_REQUIRE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
+    REQUIRE_TRUE(!reader.update());
 }

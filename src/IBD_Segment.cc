@@ -1,8 +1,4 @@
-#include <iostream>
-#include <string.h>
-#include <limits>
 #include "IBDmix/IBD_Segment.h"
-#include "IBDmix/IBD_Stack.h"
 
 IBD_Segment::IBD_Segment(const char *segment_name, double threshold,
         bool exclusive_end, bool more_stats){
@@ -21,16 +17,16 @@ IBD_Segment::~IBD_Segment(){
 }
 
 void IBD_Segment::add_lod(int chromosome, unsigned long int position,
-        double lod, FILE *output, unsigned char bitmask){
+        double lod, std::ostream &output, unsigned char bitmask){
     chrom = chromosome;
     add_node(get_node(position, lod, bitmask), output);
 }
 
-void IBD_Segment::purge(FILE *output){
+void IBD_Segment::purge(std::ostream &output){
     add_node(get_node(-1, -std::numeric_limits<double>::infinity()), output);
 }
 
-void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
+void IBD_Segment::add_node(struct IBD_Node *new_node, std::ostream &output){
     // ignore negative lod as first entry
     if(top == nullptr && new_node->lod < 0){
         reclaim_node(new_node);
@@ -67,14 +63,20 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
                 if(ptr->lod != -std::numeric_limits<double>::infinity())
                     pos = ptr->position;
             }
-            fprintf(output, "%s\t%d\t%lu\t%lu\t%g",
-                    name, chrom, start->position,
-                    pos, end->cumulative_lod);
+            output << name << '\t'
+                << chrom << '\t'
+                << start->position << '\t'
+                << pos << '\t'
+                << end->cumulative_lod;
             if (more_stats == true)
-                fprintf(output, "\t%d\t%d\t%d\t%d\t%d\t%d\t%d",
-                        sites, both, in_mask, maf_low,
-                        maf_high, rec_2_0, rec_0_2);
-            fprintf(output, "\n");
+                output << '\t' << sites << '\t'
+                    << both << '\t'
+                    << in_mask << '\t'
+                    << maf_low << '\t'
+                    << maf_high << '\t'
+                    << rec_2_0 << '\t'
+                    << rec_0_2;
+            output << '\n';
         }
         // reverse list to reprocess remaining nodes
         top = reverse(top);
