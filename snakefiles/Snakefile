@@ -55,7 +55,7 @@ rule generate_gt:
     output:
         paths['genotype_file']
 
-    threads: 2
+    threads: 1
 
     shell:
         '{input.exe} '
