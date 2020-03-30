@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <math.h>
-#include <iostream>
 #include "IBDmix/Genotype_Reader.h"
 
 bool is_break(const char * chr);

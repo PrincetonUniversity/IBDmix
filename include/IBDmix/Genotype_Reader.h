@@ -1,5 +1,10 @@
 #pragma once
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <math.h>
+#include <iostream>
 
 int find_token(const char * query, const char * str);
 const unsigned char IN_MASK = 1 << 0;
@@ -11,27 +16,10 @@ const unsigned char RECOVER_0_2 = 1 << 4;
 
 class Genotype_Reader{
     private:
-        FILE * genotype;
-        FILE * mask;
-        int *sample_to_index, num_samples, archaic_index, minor_allele_cutoff,
-            mask_chromosome;
+        FILE * genotype, * mask;
+        int mask_chromosome;
         unsigned long int mask_start, mask_end;
-        char *buffer;
-        char *samples;
         size_t buf_size;
-        double archaic_error, modern_error_max, modern_error_proportion,
-               minesp, *lod_cache;
-
-        void determine_sample_mapping(const char * sample_line);
-        void find_archaic(const char * archaic,
-                const char * sample_line);
-        bool in_mask(void);
-        void process_line_buffer(bool selected);
-        bool get_frequency(double &frequency);
-        double get_modern_error(double frequency);
-        double calculate_lod(char modern);
-        void update_lod_cache(char archaic, double freq_b, double modern_error,
-                bool selected=true);
 
         int num_lines, count_in_mask, fail_maf, count_recovered, both;
         double frac_rec;
@@ -43,15 +31,30 @@ class Genotype_Reader{
                 int minor_allele_cutoff=1);
         ~Genotype_Reader();
 
+        char *buffer;
+        char *samples;
+        int *sample_to_index, minor_allele_cutoff, archaic_index, num_samples;
+        void process_line_buffer(bool selected);
+        double get_modern_error(double frequency);
+        double archaic_error, modern_error_max, modern_error_proportion,
+               minesp, *lod_cache;
+        bool get_frequency(double &frequency);
+        void update_lod_cache(char archaic, double freq_b, double modern_error,
+                bool selected=true);
+        double calculate_lod(char modern);
+        void determine_sample_mapping(const char * sample_line);
+        void find_archaic(const char * archaic,
+                const char * sample_line);
+
         int chromosome;
         unsigned long int position;
         double *lod_scores;
         unsigned char *recover_type;
         unsigned char line_filtering;
 
-        int initialize(FILE * samples=nullptr,
-                const char * archaic=nullptr);
+        int initialize(FILE * samples=nullptr, const char * archaic=nullptr);
         bool update(void);
         bool yield_sample(char * &sample, int count);
 
+        bool in_mask(void);
 };

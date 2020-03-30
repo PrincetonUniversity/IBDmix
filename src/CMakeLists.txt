@@ -1,4 +1,9 @@
+add_library(vcf_file STATIC vcf_file.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/vcf_file.h)
+target_include_directories(vcf_file PUBLIC ../include)
+
 add_executable(generate_gt generate_gt.cc)
+target_include_directories(generate_gt PUBLIC ../include)
+target_link_libraries(generate_gt vcf_file)
 
 add_library(ibd_stack STATIC IBD_Stack.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/IBD_Stack.h)
 target_include_directories(ibd_stack PUBLIC ../include)
