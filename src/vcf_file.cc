@@ -1,70 +1,52 @@
 #include "IBDmix/vcf_file.h"
 
-VCF_File::VCF_File(FILE* in_file, std::ostream &output) {
+VCF_File::VCF_File(std::istream* in_file, std::ostream &output) : input(in_file) {
     // setup lines for subsequent reading, write individuals to output
     number_individuals = 0;
-    input = in_file;
-    char *individual_start = NULL;
-    buffer = NULL;
-    len = 0;
-    char *ptr;
     chromosome = 0;
     // remove header
-    while(fgetc(input) == '#'){
+    while(std::getline(*input, buffer)){
         // header lines without needed information
-        if(fgetc(input) == '#')
-            purge_line();
+        if(buffer[1] == '#')
+            continue;
         // header with column names
-        else{
-            getline(&buffer, &len, input);
-            for(ptr = buffer; *ptr != '\0'; ptr++){
-                // count individuals, mark location for printing
-                if(*ptr == '\t'){
-                    number_individuals++;
-                    if(individual_start == NULL &&
-                            number_individuals > 8)
-                        individual_start = ptr;
-                }
-                if(*ptr == '\n'){
-                    *ptr = '\0';
-                    // handle tab at line end for header and remove an indiv
-                    if(*(ptr-1) == '\t'){
-                        *(ptr-1) = '\0';
-                        --number_individuals;
-                    }
-                    break;
-                }
+        else if(buffer[0] == '#') {
+            iss.str(buffer);
+            std::string token;
+            // read in first 9 columns (not needed)
+            iss >> token; // CHROM
+            iss >> token; // POS
+            iss >> token; // ID
+            iss >> token; // REF
+            iss >> token; // ALT
+            iss >> token; // QUAL
+            iss >> token; // FILTER
+            iss >> token; // INFO
+            iss >> token; // FORMAT
+            // write indivs prepend with \t, count number
+            while(iss >> token){
+                ++number_individuals;
+                output << '\t' << token;
             }
-            // write individuals to output
-            output << individual_start ;
             break;
         }
     }
-    if(number_individuals <= 8){
-        fprintf(stderr, "Ill-formed file, unable to parse header\n");
+
+    if(number_individuals == 0){
+        std::cerr << "Ill-formed file, unable to parse header\n";
         exit(1);
     }
 
-    number_individuals -= 8; //remove other columns
-    // note: because we count tabs above, we subtract 8 (instead of 9)
-    // as the last column has a newline instead of a tab
-
     // allocate output lines, fill in tabs
-    genotypes = new char [number_individuals*2 + 1];
-    blank_line = new char [number_individuals*2 + 1];
-    for(int i = 0; i <= 2*number_individuals; i+=2){
+    genotypes.resize(number_individuals*2);
+    blank_line.resize(number_individuals*2);
+    for(int i = 0; i < 2*number_individuals; i+=2){
         genotypes[i] = 'x';
         genotypes[i+1] = '\t';
 
         blank_line[i] = '0';
         blank_line[i+1] = '\t';
     }
-    genotypes[number_individuals*2] = '\0';
-    blank_line[number_individuals*2] = '\0';
-}
-
-void VCF_File::purge_line(void){
-    fscanf(input, "%*[^\n]\n");
 }
 
 bool VCF_File::update(bool skip_non_informative){
@@ -75,56 +57,110 @@ bool VCF_File::update(bool skip_non_informative){
 
 bool VCF_File::read_line(bool skip_non_informative){
     isvalid = true;
-    if(fscanf(input, "%i\t%lu\t%*s\t", &chromosome, &position) == EOF){
+    if(!std::getline(*input, buffer)){
         chromosome = -1;
         return false;
     }
+    iss.clear();
+    iss.str(buffer);
+    if(!(iss >> chromosome && iss >> position))
+        return false;
 
     // read in ref and alt alleles, skipping if > 1 character
-    reference = fgetc(input);
-    if (fgetc(input) != '\t'){
-        purge_line();
+    std::string token;
+    iss >> token;  // ID
+    iss >> token;  // REF
+    if (token.size() != 1){
         isvalid = false;
         return !skip_non_informative;  // this will allow checks if not skipping
     }
-    alternative = fgetc(input);
-    if (fgetc(input) != '\t'){
-        purge_line();
+    reference = token[0];
+    iss >> token;  // ALT
+    if (token.size() != 1){
         isvalid = false;
-        return !skip_non_informative;
+        return !skip_non_informative;  // this will allow checks if not skipping
     }
+    alternative = token[0];
 
     // discard qual, filter, etc
-    fscanf(input, "%*s\t%*s\t%*s\t%*s\t");
-    // read in genotypes
-    getline(&buffer, &len, input);
-    int ind = 0;
-    char * ptr = buffer;
-    bool none_valid = true;
-    while(true){
-        genotypes[ind] = ptr[0] + ptr[2] - '0';
-        // ',' = '.' + '.' - '0'
-        genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
-        if(none_valid && genotypes[ind] != '9')
-            none_valid = false;
-        // read to next token
-        ind += 2;
-        while(*ptr != '\t' && *ptr != '\0'){
-            ptr++;
-        }
-        // the check for newlines will handle tabs before newlines
-        if(*ptr == '\0' || *(++ptr) == '\n')
-            break;
-    }
-    // return true of skip is false or
+    iss >> token;  // QUAL
+    iss >> token;  // FILTER
+    iss >> token;  // INFO
+    iss >> token;  // FORMAT
+
+    // skip to sample
+    std::string::size_type ind = buffer.find('\t');
+    for (int i = 1; i < 9; ++i)
+        ind = buffer.find('\t', ind+1);
+
+    bool none_valid = parse(buffer.c_str() + ind + 1, token);
+
+    // return true if skip is false or
     // if skip is false but at least one informative found
     return !skip_non_informative || !none_valid;
 }
 
-VCF_File::~VCF_File(){
-    delete []blank_line;
-    delete []genotypes;
-    if (buffer)
-        free(buffer);
-    fclose(input);
+bool VCF_File::parse(const char *start, std::string &format){
+    // check if format is GT, otherwise need to parse more carefully
+    if(format == "GT")
+        return simpleParse(start);
+    else{
+        // format is complex, split by : finding index of GT
+        int ind = 0;
+        const char *fmt = format.c_str();
+        for(;;){
+            if(strncmp(fmt, "GT", 2) == 0)
+                return complexParse(start, ind);
+            ++ind;  // not found, onto next fmt
+            while(*fmt != ':' && *fmt != '\0')
+                ++fmt;
+            if(*fmt == '\0'){
+                throw std::invalid_argument("FORMAT must contain GT");
+            }
+            ++fmt;
+        }
+    }
+
+}
+
+bool VCF_File::simpleParse(const char *start){
+    bool none_valid = true;
+    int ind = 0;
+    while(ind < genotypes.size()){
+        genotypes[ind] = start[0] + start[2] - '0';
+        // ',' = '.' + '.' - '0'
+        genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
+        if(none_valid && genotypes[ind] != '9')
+            none_valid = false;
+        ind += 2;
+        start += 4;  // gt (2) separator and tab
+    }
+    return none_valid;
+}
+
+bool VCF_File::complexParse(const char *start, int gtInd){
+    bool none_valid = true;
+    int ind = 0;
+    while(ind < genotypes.size()){
+        // move to the gtInd'th :
+        for(int i = 0; i < gtInd; ++i){
+            for(; *start != ':'; ++start)
+                ;
+            ++start;
+        }
+
+        genotypes[ind] = start[0] + start[2] - '0';
+        // ',' = '.' + '.' - '0'
+        genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
+        if(none_valid && genotypes[ind] != '9')
+            none_valid = false;
+
+        ind += 2;
+
+        // move to next tab or null
+        while(*start != '\t' && *start != '\0')
+            ++start;
+        ++start;
+    }
+    return none_valid;
 }

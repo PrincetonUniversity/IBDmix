@@ -20,9 +20,9 @@ export PATH=$PWD/cmake_dir/bin:$PATH
 
 cmake --version
 
-cd build_tmp 
-cmake .. -DBUILD_TESTING=True $2 
-cmake --build . 
+cd build_tmp
+cmake .. -DBUILD_TESTS=ON $2
+cmake --build .
 ctest
 
 ls tests/*_test | \

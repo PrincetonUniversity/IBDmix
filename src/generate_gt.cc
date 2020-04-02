@@ -1,64 +1,28 @@
-#include <string.h>
-#include <getopt.h>
 #include <iostream>
 #include <fstream>
 
-#include "IBDmix/vcf_file.h"
+#include <CLI/CLI.hpp>
 
-void print_options(void){
-    std::cout << "--------------------------OPTIONS--------------------------\n"
-    << "  -h, --help:       print help and exit\n"
-    << "  -a, --archaic:    the archaic vcf file, uncompressed\n"
-    << "  -m, --modern:     the modern vcf file, uncompressed\n"
-    << "  -o, --output:     the merged, genotype file, uncompressed\n";
-}
+#include "IBDmix/vcf_file.h"
 
 int main(int argc, char *argv[])
 {
-    FILE * archaic_vcf, * modern_vcf;
+    CLI::App app{"Produce genotype files from vcfs"};
+
+    std::string archaic_file;
+    app.add_option("-a,--archaic", archaic_file, "The archaic sample vcf")
+        ->check(CLI::ExistingFile)
+        ->required();
+
+    std::string modern_file;
+    app.add_option("-m,--modern", modern_file, "The modern sample vcf")
+        ->check(CLI::ExistingFile)
+        ->required();
+
     std::string outfile = "-";
-    int c;
+    app.add_option("-o,--output", outfile, "The output file location");
 
-    archaic_vcf = modern_vcf = nullptr;
-    // read in arguments
-    const option long_opts[] = {
-        {"help", no_argument, nullptr, 'h'},
-        {"archaic", required_argument, nullptr, 'a'},
-        {"modern", required_argument, nullptr, 'm'},
-        {"output", required_argument, nullptr, 'o'},
-    };
-    while ((c = getopt_long(argc, argv, "ha:o:m:", long_opts, nullptr)) != -1) {
-        switch (c) {
-            case 'h':
-                std::cout << "Usage " << argv[0]
-                    << " -a <archaic file> -m <modern file> -o <output file>\n";
-                print_options();
-                return 0;
-            case 'a':
-                archaic_vcf = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "r");
-                break;
-            case 'm':
-                modern_vcf = strcmp(optarg, "-") == 0 ? stdin : fopen(optarg, "r");
-                break;
-            case 'o':
-                outfile = optarg;
-                break;
-        }
-    }
-
-    // error if any unset
-    if (archaic_vcf == nullptr){
-        fprintf(stderr,
-                "Missing archaic vcf file input. Please provide valid '-a'\n");
-        print_options();
-        exit(1);
-    }
-    if (modern_vcf == nullptr){
-        fprintf(stderr,
-                "Missing modern vcf file input. Please provide valid '-m'\n");
-        print_options();
-        exit(1);
-    }
+    CLI11_PARSE(app, argc, argv);
 
     std::ofstream of;
     std::streambuf * buf;
@@ -71,11 +35,15 @@ int main(int argc, char *argv[])
     }
     std::ostream output(buf);
 
+    std::ifstream archaic_vcf, modern_vcf;
+    archaic_vcf.open(archaic_file);
+    modern_vcf.open(modern_file);
+
     // write header
     output << "chrom\tpos\tref\talt";
     // build files, this will print the headers as well (archaic first)
-    VCF_File archaic(archaic_vcf, output);
-    VCF_File modern(modern_vcf, output);
+    VCF_File archaic(&archaic_vcf, output);
+    VCF_File modern(&modern_vcf, output);
     // terminate header
     output << "\n";
 
@@ -139,9 +107,11 @@ int main(int argc, char *argv[])
             }
         }
     }
-    
+
     if(of.is_open())
         of.close();
+    archaic_vcf.close();
+    modern_vcf.close();
 
     return 0;
 }

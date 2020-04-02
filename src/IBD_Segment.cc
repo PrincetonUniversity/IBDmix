@@ -1,124 +1,148 @@
 #include "IBDmix/IBD_Segment.h"
 
-IBD_Segment::IBD_Segment(const char *segment_name, double threshold,
-        bool exclusive_end, bool more_stats){
-    // NOTE!! start and end refer to the segment, not the stack
-    // The stack grows nearest end, start is nearest to bottom
-    start = end = top = nullptr;
-    name = new char[strlen(segment_name)+1];
-    strcpy(name, segment_name);
-    thresh = threshold;
-    this->exclusive_end = exclusive_end;  // true to match legacy of 'next' position
-    this->more_stats = more_stats;
-}
+IBD_Segment::IBD_Segment(std::string segment_name, double threshold,
+        IBD_Pool *pool, bool exclusive_end) :
+    name(segment_name), thresh(threshold), pool(pool),
+    exclusive_end(exclusive_end){}
 
 IBD_Segment::~IBD_Segment(){
-    delete[] name;
+    pool->reclaim_all(segment.top);
+    for(auto & recorder : recorders)
+        recorder.reset();
 }
 
+void IBD_Segment::add_recorder(std::shared_ptr<Recorder> recorder){
+    recorders.push_back(recorder);
+}
+
+
 void IBD_Segment::add_lod(int chromosome, unsigned long int position,
-        double lod, std::ostream &output, unsigned char bitmask){
-    chrom = chromosome;
-    add_node(get_node(position, lod, bitmask), output);
+        double lod, unsigned char bitmask, std::ostream &output){
+    if(chromosome > 0) chrom = chromosome;
+    // ignore negative lod as first entry
+    if(segment.empty() && lod < 0){
+        return;
+    }
+
+    add_node(pool->get_node(position, lod, bitmask), output);
 }
 
 void IBD_Segment::purge(std::ostream &output){
-    add_node(get_node(-1, -std::numeric_limits<double>::infinity()), output);
+    // -1 and 0s are placeholders, the -inf forces segment to pop all
+    add_lod(-1, 0, -std::numeric_limits<double>::infinity(), 0, output);
 }
 
-void IBD_Segment::add_node(struct IBD_Node *new_node, std::ostream &output){
-    // ignore negative lod as first entry
-    if(top == nullptr && new_node->lod < 0){
-        reclaim_node(new_node);
+void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
+    if(segment.empty() && node->lod < 0){
+        pool->reclaim_node(node);
         return;
     }
+    segment.push(node);
 
-    push(top, new_node);
-
-    // first entry, nothing else to do
-    if(top->next == nullptr){
-        both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
-        update_counts(new_node->bitmask);
-        start = end = top;
-        top->cumulative_lod = top->lod;
+    // first entry, reset counts
+    if(segment.top->next == nullptr){
+        initialize_stats();
+        update_stats(node);
+        segment.start = segment.end = segment.top;
+        node->cumulative_lod = node->lod;
         return;
     }
-    top->cumulative_lod = top->next->cumulative_lod + top->lod;
+    // cumulative lod defaults to lod
+    segment.top->cumulative_lod = segment.top->next->cumulative_lod +
+        segment.top->lod;
 
     // new max, collapse to start
-    if(top->cumulative_lod >= end->cumulative_lod){
-        update_counts(new_node->bitmask);
-        end = top;
-        reclaim_between(end, start);
+    if(segment.top->cumulative_lod >= segment.end->cumulative_lod){
+        // add all nodes from top to end
+        if(!recorders.empty())
+            update_stats_recursive(segment.top);
+        segment.end = segment.top;
+        pool->reclaim_between(segment.end, segment.start);
     }
 
-    if(top->cumulative_lod < 0){
+    if(segment.top->cumulative_lod < 0){
         // write output
-        if(end->cumulative_lod >= thresh){
-            unsigned long int pos = end->position;
-            if(exclusive_end && end != top){
+        if(segment.end->cumulative_lod >= thresh){
+            unsigned long pos = segment.end->position;
+            if(exclusive_end && segment.end != segment.top){
                 //find previous node 'above' top
-                struct IBD_Node * ptr = top;
-                for(; ptr->next != end; ptr=ptr->next);
+                struct IBD_Node * ptr = segment.top;
+                for(; ptr->next != segment.end; ptr=ptr->next);
                 if(ptr->lod != -std::numeric_limits<double>::infinity())
                     pos = ptr->position;
             }
             output << name << '\t'
                 << chrom << '\t'
-                << start->position << '\t'
+                << segment.start->position << '\t'
                 << pos << '\t'
-                << end->cumulative_lod;
-            if (more_stats == true)
-                output << '\t' << sites << '\t'
-                    << both << '\t'
-                    << in_mask << '\t'
-                    << maf_low << '\t'
-                    << maf_high << '\t'
-                    << rec_2_0 << '\t'
-                    << rec_0_2;
+                << segment.end->cumulative_lod;
+            report_stats(output);
             output << '\n';
         }
         // reverse list to reprocess remaining nodes
-        top = reverse(top);
+        segment.reverse();
         // skip from top to end
-        struct IBD_Node *reversed = end->next;
-        end->next = nullptr;
-        reclaim_all(top);
+        IBD_Stack reversed = segment.end->next;
+        segment.end->next = nullptr;
+        pool->reclaim_all(segment.top);
         // reset member variables to process reversed
-        top = start = end = nullptr;
-        while(reversed != nullptr)
-            add_node(pop(reversed), output);
+        segment.top = segment.start = segment.end = nullptr;
+        while(!reversed.empty()){
+            add_node(reversed.pop(), output);
+        }
     }
 }
 
-void IBD_Segment::update_counts(unsigned char bitmask){
-    if (more_stats == false)
+void IBD_Segment::initialize_stats(){
+    for( auto &recorder : recorders)
+        recorder->initializeSegment();
+}
+
+void IBD_Segment::update_stats_recursive(IBD_Node *node){
+    // since the list is linked in decreasing order, need to traverse in
+    // reverse via recursion
+    if(node == segment.end || node == nullptr)
         return;
-    if((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH))) both++;
-    if((bitmask & IN_MASK) && !(bitmask & MAF_LOW)) in_mask++;
-    if(!(bitmask & IN_MASK) && (bitmask & MAF_LOW)) maf_low++;
-    if(!(bitmask & IN_MASK) && (bitmask & MAF_HIGH)) maf_high++;
-    if(bitmask & RECOVER_2_0) rec_2_0++;
-    if(bitmask & RECOVER_0_2) rec_0_2++;
-    sites++;
+    update_stats_recursive(node->next);
+    update_stats(node);
 }
 
-int IBD_Segment::length(void){
-    return stack_length(top);
+void IBD_Segment::update_stats(IBD_Node *node){
+    for( auto &recorder : recorders)
+        recorder->record(node);
 }
 
-void IBD_Segment::display(void){
-    std::cout << "--- " << name << " ---\n";
-    for(struct IBD_Node* ptr = top; ptr != nullptr; ptr = ptr->next){
-        std::cout << ptr->position << "\t"
-            << ptr-> lod << "\t"
-            << ptr-> cumulative_lod;
-        if (ptr == top)
-            std::cout << " <- top";
-        if (ptr == start)
-            std::cout << " <- start";
-        if (ptr == end)
-            std::cout << " <- end";
-        std::cout << "\n";
+void IBD_Segment::report_stats(std::ostream &output){
+    for( auto &recorder : recorders)
+        recorder->report(output);
+}
+
+void IBD_Segment::writeHeader(std::ostream &strm) const{
+    for( auto &recorder : recorders)
+        recorder->writeHeader(strm);
+}
+
+void IBD_Segment::write(std::ostream &strm) const{
+    strm << "--- " << name << " ---\n";
+    for(struct IBD_Node* ptr = segment.top; ptr != nullptr; ptr = ptr->next){
+        strm << ptr->position << "\t"
+            << ptr->lod << "\t"
+            << ptr->cumulative_lod;
+        if (ptr == segment.top)
+            strm << " <- top";
+        if (ptr == segment.start)
+            strm << " <- start";
+        if (ptr == segment.end)
+            strm << " <- end";
+        strm << "\n";
     }
+}
+
+int IBD_Segment::size(void){
+    return segment.size();
+}
+
+std::ostream& operator<<(std::ostream &strm, const IBD_Segment &segment){
+    segment.write(strm);
+    return strm;
 }

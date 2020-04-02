@@ -6,7 +6,7 @@ Admixture has played a prominent role in shaping patterns of human genomic
 variation, including gene flow with now extinct hominins like Neanderthals and
 Denisovans. We describe a novel probabilistic method called IBDmix to identify
 introgressed hominin sequences, which unlike existing approaches, does not use
-a modern reference population. 
+a modern reference population.
 
 ## Usage
 
@@ -26,16 +26,12 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ```
-The executables will be left in `IBDmix/build/src`.
-
-#### Summary
-The summary.sh script is a wrapper around awk and sort and
-requires no compilation.
+The executables `generate_gt` and `ibdmix` will be left in `IBDmix/build/src`.
 
 ### Usage Details
 Note that all chromosomes must be integers in the input vcfs and masked bed files.
 Vcf and mask files should be split by chromosome.  See the included snakefile as
-and example pipeline implementation.
+an example pipeline implementation.
 
 #### Generate Genotype
 `generate_gt` has the following options:
@@ -60,7 +56,7 @@ The input genotype file produced by `generate_gt`.
                         Required.
 - __-o, --output__
 The output file.  Format is tab-delimited text with
-columns for individual ID, chromosome, start, end, 
+columns for individual ID, chromosome, start, end,
 and LOD score.  The regions are half open with \[start,
 end), where the end position is the next position in
 the input genotype file. Required.
@@ -79,9 +75,9 @@ If not specified all sites are considered.
 - __-d, --LOD-threshold__
 Threshold value of log(odds) for emitting regions.
 Default: 3.0
-- __-m, --minor-allele-count-threshold__       
+- __-m, --minor-allele-count-threshold__
 Threshold count for filtering minor alleles.  For
-each site, the number of occurrences in the sample 
+each site, the number of occurrences in the sample
 population is tabulated.  If fewer than this count
 are found, the LOD score for the site is taken as 0.
 Default: 1
@@ -108,7 +104,8 @@ end is the last position with increasing LOD, or [start, end].
 A switch to report additional region-level statistics.
 Additional columns include:
   - sites: total number of sites in genotype file in region
-  - mask and maf: sites which are both in the masked region
+  - positive_lods: number of sites with positive LOD scores in the region
+  - mask\_and\_maf: sites which are both in the masked region
        and fail MAF cutoff
   - in\_mask: sites in the mask but pass MAF
   - maf\_low: sites failing MAF with low frequency
@@ -117,8 +114,13 @@ Additional columns include:
       due to a genotype of 2 in archaic and 0 in modern
   - rec\_0\_2: same as rec\_2\_0 but with 0 in archaic and
        2 in modern
+- __-w, --write-snps__
+Include positions with positive LOD scores as a comma-separated list.
+- __--write-lods__
+Include LOD scores of positive sites as a comma-separated list.  Same order as
+write-snps output (e.g. zip the two entries to get position/lod values).
 
-#### Summary
+#### Summary.sh
 Once a run of `ibdmix` completes, it is informative to filter the results
 on a range of LOD values and length cutoffs.  It is faster to perform this
 operation on the `ibdmix` output than to rerun with different options.
@@ -137,8 +139,8 @@ Optional, the uncompressed output file. Contains only
 the regions passing both filters, sorted by ID then
 start position of the region.
 
-If neither input nor output is specified, standard input and output are 
-utilized.  To specify only one value, use `-` to indicate standard 
+If neither input nor output is specified, standard input and output are
+utilized.  To specify only one value, use `-` to indicate standard
 input/output.  For example, to filter length greater than 1000 and LOD greater
 than 5 from ibd\_output.txt and generate compressed output.gz
 ```
@@ -155,7 +157,7 @@ All files are compressed with gzip.
 
 The easiest way to get started is to set your paths in the config file and
 run `snakemake` in the snakefiles directory.  If mask statistics are generated,
-bedtools needs to be installed and included in PATH, otherwise run snakemake 
+bedtools needs to be installed and included in PATH, otherwise run snakemake
 with the `--use-singularity` flag to download and use a docker container instead.
 
 If a cmake module is present, adding the --use-envmodules will activate it prior
