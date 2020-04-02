@@ -14,9 +14,9 @@ Genotype_Reader::Genotype_Reader(FILE * genotype, FILE * mask,
     this->minesp = minesp;
     this->minor_allele_cutoff = minor_allele_cutoff;
 
-    buffer = NULL;
+    buffer = nullptr;
     buf_size = 0;
-    samples = NULL;
+    samples = nullptr;
     sample_to_index = nullptr;
     lod_scores = nullptr;
     recover_type = nullptr;
@@ -46,7 +46,7 @@ int Genotype_Reader::initialize(FILE * samples, const char * archaic){
     // and mapping from position to sample number
     int result = 0;
     //get number of samples
-    char * sample_line = NULL;
+    char * sample_line = nullptr;
     size_t sample_len = 0;
 
     //read genotype header
@@ -86,7 +86,7 @@ int Genotype_Reader::initialize(FILE * samples, const char * archaic){
 
 void Genotype_Reader::determine_sample_mapping(const char * sample_line){
     // set the mapping from sample to its index in the genotype file line
-    if(sample_line == NULL){
+    if(sample_line == nullptr){
         // set map to range, removing the archaic index
         int index = 0;
         for(int i = 0; i < num_samples; i++, index++){

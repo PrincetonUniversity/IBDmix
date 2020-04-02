@@ -52,7 +52,7 @@ VCF_File::VCF_File(FILE* in_file, std::ostream &output) {
     // allocate output lines, fill in tabs
     genotypes = new char [number_individuals*2 + 1];
     blank_line = new char [number_individuals*2 + 1];
-    for(int i = 0; i <= 2*number_individuals; i+=2){
+    for(int i = 0; i < 2*number_individuals; i+=2){
         genotypes[i] = 'x';
         genotypes[i+1] = '\t';
 

@@ -1,73 +1,74 @@
 #include "IBDmix/IBD_Segment.h"
 
 IBD_Segment::IBD_Segment(const char *segment_name, double threshold,
-        bool exclusive_end, bool more_stats){
-    // NOTE!! start and end refer to the segment, not the stack
-    // The stack grows nearest end, start is nearest to bottom
-    start = end = top = nullptr;
-    name = new char[strlen(segment_name)+1];
-    strcpy(name, segment_name);
-    thresh = threshold;
-    this->exclusive_end = exclusive_end;  // true to match legacy of 'next' position
-    this->more_stats = more_stats;
-}
+        IBD_Pool *pool, bool exclusive_end, bool more_stats) :
+    name(segment_name), thresh(threshold), pool(pool),
+    exclusive_end(exclusive_end), more_stats(more_stats)
+{ }
 
 IBD_Segment::~IBD_Segment(){
-    delete[] name;
+    pool->reclaim_all(segment.top);
 }
 
 void IBD_Segment::add_lod(int chromosome, unsigned long int position,
-        double lod, std::ostream &output, unsigned char bitmask){
-    chrom = chromosome;
-    add_node(get_node(position, lod, bitmask), output);
+        double lod, unsigned char bitmask, std::ostream &output){
+    if(chromosome > 0) chrom = chromosome;
+    // ignore negative lod as first entry
+    if(segment.empty() && lod < 0){
+        return;
+    }
+
+    add_node(pool->get_node(position, lod, bitmask), output);
 }
 
 void IBD_Segment::purge(std::ostream &output){
-    add_node(get_node(-1, -std::numeric_limits<double>::infinity()), output);
+    // -1 and 0s are placeholders, the -inf forces segment to pop all
+    add_lod(-1, 0, -std::numeric_limits<double>::infinity(), 0, output);
 }
 
-void IBD_Segment::add_node(struct IBD_Node *new_node, std::ostream &output){
-    // ignore negative lod as first entry
-    if(top == nullptr && new_node->lod < 0){
-        reclaim_node(new_node);
+void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
+    if(segment.empty() && node->lod < 0){
+        pool->reclaim_node(node);
         return;
     }
+    segment.push(node);
 
-    push(top, new_node);
-
-    // first entry, nothing else to do
-    if(top->next == nullptr){
+    // first entry, reset counts
+    if(segment.top->next == nullptr){
         both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
-        update_counts(new_node->bitmask);
-        start = end = top;
-        top->cumulative_lod = top->lod;
+        update_counts(node->bitmask);
+        segment.start = segment.end = segment.top;
+        node->cumulative_lod = node->lod;
         return;
     }
-    top->cumulative_lod = top->next->cumulative_lod + top->lod;
+    // cumulative lod defaults to lod
+    segment.top->cumulative_lod = segment.top->next->cumulative_lod +
+        segment.top->lod;
 
     // new max, collapse to start
-    if(top->cumulative_lod >= end->cumulative_lod){
-        update_counts(new_node->bitmask);
-        end = top;
-        reclaim_between(end, start);
+    if(segment.top->cumulative_lod >= segment.end->cumulative_lod){
+        // TODO does this need to be all between?
+        update_counts(node->bitmask);
+        segment.end = segment.top;
+        pool->reclaim_between(segment.end, segment.start);
     }
 
-    if(top->cumulative_lod < 0){
+    if(segment.top->cumulative_lod < 0){
         // write output
-        if(end->cumulative_lod >= thresh){
-            unsigned long int pos = end->position;
-            if(exclusive_end && end != top){
+        if(segment.end->cumulative_lod >= thresh){
+            unsigned long pos = segment.end->position;
+            if(exclusive_end && segment.end != segment.top){
                 //find previous node 'above' top
-                struct IBD_Node * ptr = top;
-                for(; ptr->next != end; ptr=ptr->next);
+                struct IBD_Node * ptr = segment.top;
+                for(; ptr->next != segment.end; ptr=ptr->next);
                 if(ptr->lod != -std::numeric_limits<double>::infinity())
                     pos = ptr->position;
             }
             output << name << '\t'
                 << chrom << '\t'
-                << start->position << '\t'
+                << segment.start->position << '\t'
                 << pos << '\t'
-                << end->cumulative_lod;
+                << segment.end->cumulative_lod;
             if (more_stats == true)
                 output << '\t' << sites << '\t'
                     << both << '\t'
@@ -79,15 +80,16 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, std::ostream &output){
             output << '\n';
         }
         // reverse list to reprocess remaining nodes
-        top = reverse(top);
+        segment.reverse();
         // skip from top to end
-        struct IBD_Node *reversed = end->next;
-        end->next = nullptr;
-        reclaim_all(top);
+        IBD_Stack reversed = segment.end->next;
+        segment.end->next = nullptr;
+        pool->reclaim_all(segment.top);
         // reset member variables to process reversed
-        top = start = end = nullptr;
-        while(reversed != nullptr)
-            add_node(pop(reversed), output);
+        segment.top = segment.start = segment.end = nullptr;
+        while(!reversed.empty()){
+            add_node(reversed.pop(), output);
+        }
     }
 }
 
@@ -103,21 +105,21 @@ void IBD_Segment::update_counts(unsigned char bitmask){
     sites++;
 }
 
-int IBD_Segment::length(void){
-    return stack_length(top);
+int IBD_Segment::size(void){
+    return segment.size();
 }
 
 void IBD_Segment::display(void){
     std::cout << "--- " << name << " ---\n";
-    for(struct IBD_Node* ptr = top; ptr != nullptr; ptr = ptr->next){
+    for(struct IBD_Node* ptr = segment.top; ptr != nullptr; ptr = ptr->next){
         std::cout << ptr->position << "\t"
             << ptr-> lod << "\t"
             << ptr-> cumulative_lod;
-        if (ptr == top)
+        if (ptr == segment.top)
             std::cout << " <- top";
-        if (ptr == start)
+        if (ptr == segment.start)
             std::cout << " <- start";
-        if (ptr == end)
+        if (ptr == segment.end)
             std::cout << " <- end";
         std::cout << "\n";
     }

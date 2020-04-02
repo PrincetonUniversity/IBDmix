@@ -192,6 +192,4 @@ int main(int argc, char *argv[]){
         fclose(mask);
     if(of.is_open())
         of.close();
-
-    free_stack();
 }

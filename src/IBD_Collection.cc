@@ -11,7 +11,7 @@ void IBD_Collection::initialize(int num_samples, double threshold,
     char *sample;
     for(int i = 0; i < num_samples; i++){
         reader.yield_sample(sample, i);
-        IBDs.emplace_back(sample, threshold, exclusive_end, more_stats);
+        IBDs.emplace_back(sample, threshold, &pool, exclusive_end, more_stats);
     }
 }
 
@@ -20,8 +20,8 @@ void IBD_Collection::update(Genotype_Reader &reader, std::ostream &output){
         IBDs[i].add_lod(reader.chromosome,
                 reader.position,
                 reader.lod_scores[i],
-                output,
-                reader.line_filtering | reader.recover_type[i]);
+                reader.line_filtering | reader.recover_type[i],
+                output);
     }
 }
 
