@@ -1,6 +1,6 @@
 #include "IBDmix/IBD_Segment.h"
 
-IBD_Segment::IBD_Segment(const char *segment_name, double threshold,
+IBD_Segment::IBD_Segment(std::string segment_name, double threshold,
         IBD_Pool *pool, bool exclusive_end, bool more_stats) :
     name(segment_name), thresh(threshold), pool(pool),
     exclusive_end(exclusive_end), more_stats(more_stats)

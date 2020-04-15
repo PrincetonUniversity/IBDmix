@@ -29,11 +29,32 @@ run_genotype() {
         -o -
 }
 
+run_genotype_long() {
+    $generate_gt \
+        --archaic <(wget -qO - $1 | zcat) \
+        --modern <(wget -qO - $2 | zcat) \
+        --output -
+}
+
 run_ibd_pop() {
     $ibdmix \
         -g <(wget -qO - $1 | zcat) \
         -s <(wget -qO - $2) \
         -r <(wget -qO - $3) \
+        -d 3.0 \
+        -m 1 \
+        -a 0.01 \
+        -e 0.002 \
+        -c 2 \
+        -o >( tail -n +2 )
+    # the tail removes the header, which was absent in reference for these
+}
+
+run_ibd_pop_long() {
+    $ibdmix \
+        --genotype <(wget -qO - $1 | zcat) \
+        --sample <(wget -qO - $2) \
+        --mask <(wget -qO - $3) \
         --LOD-threshold 3.0 \
         --minor-allele-count-threshold 1 \
         --archaic-error 0.01 \
@@ -89,6 +110,10 @@ elif [[ $test_type == "populations" ]]; then
             <(read_result "$resultfile") \
             <(run_ibd_pop $genotype $sample $mask)
     done
+    # one more for the long args
+    cmp \
+        <(read_result "$resultfile") \
+        <(run_ibd_pop_long $genotype $sample $mask)
 
 elif [[ $test_type == "all_mask" ]]; then
     resultfile="$url_base/cell_data/outputs/ibd_raw/all_with_mask.gz"
@@ -112,28 +137,36 @@ elif [[ $test_type == "all_no_mask" ]]; then
 elif [[ $test_type == "extra" ]]; then
     genotype="$url_base/cell_data/outputs/genotype/altai_1kg_20.gz"
 
-    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_inclusive.gz"
-
     echo "inclusive end"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_inclusive.gz"
     cmp \
         <(read_result "$resultfile") \
         <(run_ibd_extra $genotype "--inclusive-end")
 
-    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
-
     echo "more stats"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
     cmp \
         <(read_result "$resultfile") \
         <(run_ibd_extra $genotype "--more-stats")
 
+    echo "with tab"
     resultfile="$url_base/terminal_tab/genotype.out.gz"
     mod="$url_base/terminal_tab/mod_chr22.vcf.gz"
     arch="$url_base/terminal_tab/AltNea_n10000.vcf.gz"
-
-    echo "with tab"
     cmp \
         <(read_result $resultfile) \
-        <(run_genotype $arch $mod)
+        <(run_genotype_long $arch $mod)
+
+    echo "short args"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_inclusive.gz"
+    cmp \
+        <(read_result "$resultfile" | head -n 100) \
+        <(run_ibd_extra $genotype "-i" | head -n 100)
+
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
+    cmp \
+        <(read_result "$resultfile" | head -n 100) \
+        <(run_ibd_extra $genotype "-t" | head -n 100)
 
 else
     echo "Unknown test type $test_type"

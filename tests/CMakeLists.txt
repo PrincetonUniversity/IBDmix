@@ -17,5 +17,7 @@ endmacro()
 
 package_add_test(ibd_stack_test test_IBD_Stack.cc ibd_stack)
 package_add_test(ibd_segment_test test_IBD_Segment.cc ibd_segment)
+package_add_test(mask_reader_test test_Mask_Reader.cc mask_reader)
+package_add_test(sample_mapper_test test_Sample_Mapper.cc sample_mapper)
 package_add_test(genotype_reader_test test_Genotype_Reader.cc genotype_reader)
 package_add_test(vcf_file_test test_vcf_file.cc vcf_file)

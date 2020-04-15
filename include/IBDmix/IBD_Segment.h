@@ -20,7 +20,7 @@ class IBD_Segment{
         void update_counts(unsigned char bitmask);
 
     public:
-        IBD_Segment(const char *name, double threshold, IBD_Pool *pool,
+        IBD_Segment(std::string name, double threshold, IBD_Pool *pool,
                 bool exclusive_end=true, bool more_stats=false);
         ~IBD_Segment();
         void add_lod(int chromosome, unsigned long int position,

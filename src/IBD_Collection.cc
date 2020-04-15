@@ -9,10 +9,8 @@ void IBD_Collection::initialize(int num_samples, double threshold,
     this->num_samples = num_samples;
     IBDs.reserve(num_samples);
     char *sample;
-    for(int i = 0; i < num_samples; i++){
-        reader.yield_sample(sample, i);
+    for(auto & sample : reader.get_samples())
         IBDs.emplace_back(sample, threshold, &pool, exclusive_end, more_stats);
-    }
 }
 
 void IBD_Collection::update(Genotype_Reader &reader, std::ostream &output){

@@ -3,13 +3,21 @@ target_include_directories(vcf_file PUBLIC ../include)
 
 add_executable(generate_gt generate_gt.cc)
 target_include_directories(generate_gt PUBLIC ../include)
-target_link_libraries(generate_gt vcf_file)
+target_link_libraries(generate_gt vcf_file CLI11::CLI11)
 
 add_library(ibd_stack STATIC IBD_Stack.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/IBD_Stack.h)
 target_include_directories(ibd_stack PUBLIC ../include)
 
+add_library(mask_reader STATIC Mask_Reader.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Mask_Reader.h)
+target_include_directories(mask_reader PUBLIC ../include)
+
+add_library(sample_mapper STATIC Sample_Mapper.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Sample_Mapper.h)
+target_include_directories(sample_mapper PUBLIC ../include)
+
 add_library(genotype_reader STATIC Genotype_Reader.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Genotype_Reader.h)
 target_include_directories(genotype_reader PUBLIC ../include)
+target_link_libraries(genotype_reader 
+    mask_reader sample_mapper)
 
 add_library(ibd_segment IBD_Segment.cc
     ${IBDmix_SOURCE_DIR}/include/IBDmix/IBD_Segment.h)
@@ -26,4 +34,4 @@ target_link_libraries(ibd_collection
 add_executable(ibdmix main.cc)
 target_include_directories(ibdmix PUBLIC ../include)
 target_link_libraries(ibdmix
-    ibd_collection genotype_reader ibd_stack)
+    ibd_collection genotype_reader ibd_stack CLI11::CLI11)
