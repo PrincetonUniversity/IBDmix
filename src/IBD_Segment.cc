@@ -109,18 +109,23 @@ int IBD_Segment::size(void){
     return segment.size();
 }
 
-void IBD_Segment::display(void){
-    std::cout << "--- " << name << " ---\n";
+void IBD_Segment::write(std::ostream &strm) const{
+    strm << "--- " << name << " ---\n";
     for(struct IBD_Node* ptr = segment.top; ptr != nullptr; ptr = ptr->next){
-        std::cout << ptr->position << "\t"
-            << ptr-> lod << "\t"
-            << ptr-> cumulative_lod;
+        strm << ptr->position << "\t"
+            << ptr->lod << "\t"
+            << ptr->cumulative_lod;
         if (ptr == segment.top)
-            std::cout << " <- top";
+            strm << " <- top";
         if (ptr == segment.start)
-            std::cout << " <- start";
+            strm << " <- start";
         if (ptr == segment.end)
-            std::cout << " <- end";
-        std::cout << "\n";
+            strm << " <- end";
+        strm << "\n";
     }
+}
+
+std::ostream& operator<<(std::ostream &strm, const IBD_Segment &segment){
+    segment.write(strm);
+    return strm;
 }

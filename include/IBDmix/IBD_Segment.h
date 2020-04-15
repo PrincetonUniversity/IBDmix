@@ -27,5 +27,7 @@ class IBD_Segment{
                 double lod, unsigned char bitmask, std::ostream &output);
         void purge(std::ostream &output);
         int size();
-        void display();
+        void write(std::ostream &strm) const;
 };
+
+std::ostream& operator<<(std::ostream &strm, const IBD_Segment &segment);

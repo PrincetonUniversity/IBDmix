@@ -14,7 +14,7 @@ Genotype_Reader::Genotype_Reader(FILE * genotype, std::istream *mask,
 
     buffer = nullptr;
     buf_size = 0;
-    lod_cache.reserve(3);
+    lod_cache.resize(3);
 }
 
 Genotype_Reader::~Genotype_Reader(){
@@ -29,8 +29,8 @@ int Genotype_Reader::initialize(std::istream &samples, std::string archaic){
     std::istringstream iss(buffer);
     int result = sample_mapper.initialize(iss, samples, archaic);
 
-    lod_scores.reserve(result);
-    recover_type.reserve(result);
+    lod_scores.resize(result);
+    recover_type.resize(result);
     return result;
 }
 

@@ -18,10 +18,12 @@ struct IBD_Stack {
     void push(IBD_Node * new_node);
     IBD_Node * pop();
     int size();
-    void display();
+    void write(std::ostream &strm) const;
     void reverse();
     bool empty();
 };
+
+std::ostream& operator<<(std::ostream &strm, const IBD_Stack &stack);
 
 class IBD_Pool {
     int buffer_size;

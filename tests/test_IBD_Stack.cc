@@ -59,7 +59,7 @@ TEST(IBDpool, CanReclaimAlloc){
     pool.reclaim_after(nullptr);
     ASSERT_EQ(stack.size(), 5);
     ASSERT_EQ(pool.size(), 15);
-    
+
     //reclaim all
     pool.reclaim_all(stack.top);
     ASSERT_EQ(stack.size(), 0);
@@ -136,4 +136,40 @@ TEST(IBDstack, CanPushPop){
     pool.reclaim_node(result);
 
     ASSERT_EQ(stack.size(), 0);
+}
+
+TEST(IBDstack, CanPrint){
+    IBD_Stack stack;
+    IBD_Pool pool(5);
+    std::ostringstream print_out;
+
+    print_out << stack;
+    ASSERT_STREQ(print_out.str().c_str(), "\n");
+    print_out.str("");
+    print_out.clear();
+
+    stack.push(pool.get_node(1));
+    print_out << stack;
+    ASSERT_STREQ(print_out.str().c_str(), "1 \n");
+    print_out.str("");
+    print_out.clear();
+
+    stack.push(pool.get_node(2));
+    print_out << stack;
+    ASSERT_STREQ(print_out.str().c_str(), "2 1 \n");
+    print_out.str("");
+    print_out.clear();
+
+    stack.push(pool.get_node(3));
+    print_out << stack;
+    ASSERT_STREQ(print_out.str().c_str(), "3 2 1 \n");
+    print_out.str("");
+    print_out.clear();
+
+    ASSERT_EQ(stack.size(), 3);
+
+    IBD_Node *result = stack.pop();
+    pool.reclaim_node(result);
+    print_out << stack;
+    ASSERT_STREQ(print_out.str().c_str(), "2 1 \n");
 }

@@ -18,10 +18,15 @@ int IBD_Stack::size(){
     return count;
 }
 
-void IBD_Stack::display(){
+void IBD_Stack::write(std::ostream &strm) const{
     for(IBD_Node* ptr = top; ptr != nullptr; ptr = ptr->next)
-        std::cout << ptr-> position << " ";
-    std::cout << '\n';
+        strm << ptr-> position << " ";
+    strm << '\n';
+}
+
+std::ostream& operator<<(std::ostream &strm, const IBD_Stack &stack){
+    stack.write(strm);
+    return strm;
 }
 
 void IBD_Stack::reverse(){
