@@ -1,4 +1,3 @@
-#include <string.h>
 #include <iostream>
 #include <fstream>
 
@@ -36,19 +35,15 @@ int main(int argc, char *argv[])
     }
     std::ostream output(buf);
 
-    /* std::ifstream archaic_vcf, modern_vcf; */
-    /* archaic_vcf.open(archaic_file); */
-    /* modern_vcf.open(modern_file); */
-
-    FILE *archaic_vcf, *modern_vcf;
-    archaic_vcf = fopen(archaic_file.c_str(), "r");
-    modern_vcf = fopen(modern_file.c_str(), "r");
+    std::ifstream archaic_vcf, modern_vcf;
+    archaic_vcf.open(archaic_file);
+    modern_vcf.open(modern_file);
 
     // write header
     output << "chrom\tpos\tref\talt";
     // build files, this will print the headers as well (archaic first)
-    VCF_File archaic(archaic_vcf, output);
-    VCF_File modern(modern_vcf, output);
+    VCF_File archaic(&archaic_vcf, output);
+    VCF_File modern(&modern_vcf, output);
     // terminate header
     output << "\n";
 
@@ -112,11 +107,11 @@ int main(int argc, char *argv[])
             }
         }
     }
-    
+
     if(of.is_open())
         of.close();
-    /* archaic_vcf.close(); */
-    /* modern_vcf.close(); */
+    archaic_vcf.close();
+    modern_vcf.close();
 
     return 0;
 }
