@@ -113,8 +113,10 @@ TEST(IBDSegment, CanAddLODOutput){
     seg.add_lod(2, 9, 0.5, none, output);
     seg.add_lod(2, 10, -3, none, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\ntest\t2\t3\t4\t0.5\n"
-            "test\t2\t5\t6\t0.5\ntest\t2\t7\t8\t1.9\n"
+            "test\t2\t1\t2\t2\n"
+            "test\t2\t3\t4\t0.5\n"
+            "test\t2\t5\t6\t0.5\n"
+            "test\t2\t7\t8\t1.9\n"
             "test\t2\t9\t10\t0.5\n");
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 10);
@@ -140,6 +142,29 @@ TEST(IBDSegment, CanPurge){
             "test\t2\t3\t4\t0.5\n"
             "test\t2\t5\t6\t0.5\n"
             "test\t2\t7\t8\t1.9\n"
+            "test\t2\t9\t9\t0.5\n");
+}
+
+TEST(IBDSegment, CanPurgeInclusive){
+    IBD_Pool pool(5);
+    std::ostringstream output;
+    IBD_Segment seg("test", 0, &pool, false, false);
+    seg.add_lod(2, 1, 2, none, output);
+    seg.add_lod(2, 2, -1, none, output);
+    seg.add_lod(2, 3, 0.5, none, output);
+    seg.add_lod(2, 4, -1, none, output);
+    seg.add_lod(2, 5, 0.5, none, output);
+    seg.add_lod(2, 6, -1, none, output);
+    seg.add_lod(2, 7, 1.9, none, output);
+    seg.add_lod(2, 8, -1, none, output);
+    seg.add_lod(2, 9, 0.5, none, output);
+    ASSERT_EQ('\0', output.str().c_str()[0]);
+    seg.purge(output);
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t1\t2\n"
+            "test\t2\t3\t3\t0.5\n"
+            "test\t2\t5\t5\t0.5\n"
+            "test\t2\t7\t7\t1.9\n"
             "test\t2\t9\t9\t0.5\n");
 }
 
@@ -202,4 +227,102 @@ TEST(IBDSegment, CanPrint){
                     );
 }
 
-// TODO add more tests for exclusive end and more stats
+TEST(IBDSegment, CanRecordStats){
+    IBD_Pool pool(5);
+    std::ostringstream output;
+    IBD_Segment seg("test", 0, &pool, true, true);
+    seg.add_lod(2, 1, 1, IN_MASK, output);
+    seg.add_lod(2, 2, 1, IN_MASK | MAF_LOW, output);
+    seg.add_lod(2, 3, 1, IN_MASK | MAF_HIGH, output);
+    seg.add_lod(2, 4, 1, MAF_LOW, output);
+    seg.add_lod(2, 5, 1, MAF_HIGH, output);
+    seg.add_lod(2, 6, 1, RECOVER_2_0, output);
+    seg.add_lod(2, 7, 1, RECOVER_0_2, output);
+    seg.add_lod(2, 8, 1, RECOVER_0_2 | IN_MASK, output);
+    seg.add_lod(2, 9, 1, RECOVER_0_2 | MAF_LOW, output);
+    ASSERT_EQ('\0', output.str().c_str()[0]);
+    seg.purge(output);
+    ASSERT_EQ(output.str(),
+            // starting at last 9, sites both in_mask maf_low maf_high 2_0 0_2
+            "test\t2\t1\t9\t9\t9\t2\t2\t2\t1\t1\t3\n"
+            );
+    output.str("");
+    output.clear();
+
+    // add some positions
+    seg.add_lod(2, 1, 0.1, IN_MASK, output);
+    seg.add_lod(2, 2, 0.1, IN_MASK, output);
+    seg.add_lod(2, 3, 0.1, IN_MASK, output);
+    seg.add_lod(2, 4, 0.1, IN_MASK, output);
+    ASSERT_EQ(seg.size(), 2);
+
+    // make cumsum 0
+    seg.add_lod(2, 50, -0.4, MAF_LOW, output);
+    ASSERT_EQ(seg.size(), 3);
+    // and less than 0
+    seg.add_lod(2, 60, -0.1, MAF_HIGH, output);
+    // last site (50) doesn't apply as it's excluded
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t50\t0.4\t4\t0\t4\t0\t0\t0\t0\n");
+    ASSERT_EQ(seg.size(), 0);
+
+    //have start = end
+    output.str("");
+    seg.add_lod(2, 1, 2, MAF_LOW, output);
+    seg.add_lod(2, 2, -3, none, output);
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t2\t2\t1\t0\t0\t1\t0\t0\t0\n");
+    ASSERT_EQ(seg.size(), 0);
+
+    // TODO test more conditions, have example with a couple of 'humps'
+    //generate multiple outputs at once
+    output.str("");
+    seg.add_lod(2, 1, 2, none, output);
+    seg.add_lod(2, 2, -1, none, output);
+    seg.add_lod(2, 3, 0.5, none, output);
+    seg.add_lod(2, 4, -1, none, output);
+    seg.add_lod(2, 5, 0.7, none, output);
+    seg.add_lod(2, 6, -2, none, output);
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t2\t2\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t3\t4\t0.5\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t5\t6\t0.7\t1\t0\t0\t0\t0\t0\t0\n");
+    ASSERT_EQ(seg.size(), 0);
+
+    //split last into two positions
+    output.str("");
+    seg.add_lod(2, 1, 2, none, output);
+    seg.add_lod(2, 2, -1, none, output);
+    seg.add_lod(2, 3, 0.5, none, output);
+    seg.add_lod(2, 4, -1, none, output);
+    seg.add_lod(2, 5, 0.3, none, output);
+    seg.add_lod(2, 6, 0.3, none, output);
+    seg.add_lod(2, 7, -2, none, output);
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t2\t2\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t3\t4\t0.5\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t5\t7\t0.6\t2\t0\t0\t0\t0\t0\t0\n");
+    ASSERT_EQ(seg.size(), 0);
+    ASSERT_EQ(pool.size(), 10);
+
+    //trigger reversal twice
+    output.str("");
+    seg.add_lod(2, 1, 2, none, output);
+    seg.add_lod(2, 2, -1, none, output);
+    seg.add_lod(2, 3, 0.5, none, output);
+    seg.add_lod(2, 4, -1, none, output);
+    seg.add_lod(2, 5, 0.5, none, output);
+    seg.add_lod(2, 6, -1, none, output);
+    seg.add_lod(2, 7, 1.9, none, output);
+    seg.add_lod(2, 8, -1, none, output);
+    seg.add_lod(2, 9, 0.5, none, output);
+    seg.add_lod(2, 10, -3, none, output);
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t2\t2\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t3\t4\t0.5\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t5\t6\t0.5\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t7\t8\t1.9\t1\t0\t0\t0\t0\t0\t0\n"
+            "test\t2\t9\t10\t0.5\t1\t0\t0\t0\t0\t0\t0\n");
+    ASSERT_EQ(seg.size(), 0);
+    ASSERT_EQ(pool.size(), 10);
+}

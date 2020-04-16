@@ -97,7 +97,7 @@ void IBD_Segment::update_counts(unsigned char bitmask){
     if (more_stats == false)
         return;
     if((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH))) both++;
-    if((bitmask & IN_MASK) && !(bitmask & MAF_LOW)) in_mask++;
+    if((bitmask & IN_MASK) && !(bitmask & MAF_LOW) && !(bitmask &MAF_HIGH)) in_mask++;
     if(!(bitmask & IN_MASK) && (bitmask & MAF_LOW)) maf_low++;
     if(!(bitmask & IN_MASK) && (bitmask & MAF_HIGH)) maf_high++;
     if(bitmask & RECOVER_2_0) rec_2_0++;

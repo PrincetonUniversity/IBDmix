@@ -478,3 +478,111 @@ TEST_F(SampleGenotype, CanUpdateMask) {
     ASSERT_FALSE(reader.update());
     mask.close();
 }
+
+TEST_F(SampleGenotype, CanCheckLineFilter) {
+    std::ofstream genotype;
+    genotype.open("test_genotype.txt", std::ofstream::out | std::ofstream::app);
+    genotype << "4\t136\tA\tT\t0\t2\t2\t2\t2\n"
+        << "4\t137\tA\tT\t2\t0\t0\t0\t0\n";
+    genotype.close();
+    std::ifstream mask;
+    mask.open("test_mask.txt");
+    Genotype_Reader reader(fopen("test_genotype.txt", "rt"), &mask);
+    std::istream sample_dummy(nullptr);
+    reader.initialize(sample_dummy);
+    ASSERT_EQ(4, reader.num_samples());
+
+    //"1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(1, reader.chromosome);
+    ASSERT_EQ(2, reader.position);
+    ASSERT_EQ(MAF_LOW, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], 0);
+    ASSERT_EQ(reader.recover_type[1], 0);
+    ASSERT_EQ(reader.recover_type[2], 0);
+    ASSERT_EQ(reader.recover_type[3], 0);
+
+    // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check, 2/0 override
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(1, reader.chromosome);
+    ASSERT_EQ(3, reader.position);
+    ASSERT_EQ(MAF_LOW, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], RECOVER_2_0);
+    ASSERT_EQ(reader.recover_type[1], RECOVER_2_0);
+    ASSERT_EQ(reader.recover_type[2], RECOVER_2_0);
+    ASSERT_EQ(reader.recover_type[3], RECOVER_2_0);
+
+    // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(1, reader.chromosome);
+    ASSERT_EQ(4, reader.position);
+    ASSERT_EQ(0, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], 0);
+    ASSERT_EQ(reader.recover_type[1], 0);
+    ASSERT_EQ(reader.recover_type[2], 0);
+    ASSERT_EQ(reader.recover_type[3], 0);
+
+    // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" in mask
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(1, reader.chromosome);
+    ASSERT_EQ(104, reader.position);
+    ASSERT_EQ(IN_MASK, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], 0);
+    ASSERT_EQ(reader.recover_type[1], 0);
+    ASSERT_EQ(reader.recover_type[2], 0);
+    ASSERT_EQ(reader.recover_type[3], 0);
+
+    // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  in mask, 0, 2 override
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(1, reader.chromosome);
+    ASSERT_EQ(105, reader.position);
+    ASSERT_EQ(IN_MASK, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], RECOVER_0_2);
+    ASSERT_EQ(reader.recover_type[1], 0);
+    ASSERT_EQ(reader.recover_type[2], 0);
+    ASSERT_EQ(reader.recover_type[3], 0);
+
+    // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(2, reader.chromosome);
+    ASSERT_EQ(125, reader.position);
+    ASSERT_EQ(0, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], 0);
+    ASSERT_EQ(reader.recover_type[1], 0);
+    ASSERT_EQ(reader.recover_type[2], 0);
+    ASSERT_EQ(reader.recover_type[3], 0);
+
+    // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(3, reader.chromosome);
+    ASSERT_EQ(126, reader.position);
+    ASSERT_EQ(MAF_HIGH, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], RECOVER_0_2);
+    ASSERT_EQ(reader.recover_type[1], RECOVER_0_2);
+    ASSERT_EQ(reader.recover_type[2], RECOVER_0_2);
+    ASSERT_EQ(reader.recover_type[3], RECOVER_0_2);
+
+    // "4\t136\tA\tT\t0\t2\t2\t2\t2\n" in mask and maf high
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(4, reader.chromosome);
+    ASSERT_EQ(136, reader.position);
+    ASSERT_EQ(IN_MASK | MAF_HIGH, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], RECOVER_0_2);
+    ASSERT_EQ(reader.recover_type[1], RECOVER_0_2);
+    ASSERT_EQ(reader.recover_type[2], RECOVER_0_2);
+    ASSERT_EQ(reader.recover_type[3], RECOVER_0_2);
+
+    // "4\t137\tA\tT\t2\t0\t0\t0\t0\n" in mask and maf low
+    ASSERT_TRUE(reader.update());
+    ASSERT_EQ(4, reader.chromosome);
+    ASSERT_EQ(137, reader.position);
+    ASSERT_EQ(IN_MASK | MAF_LOW, reader.line_filtering);
+    ASSERT_EQ(reader.recover_type[0], RECOVER_2_0);
+    ASSERT_EQ(reader.recover_type[1], RECOVER_2_0);
+    ASSERT_EQ(reader.recover_type[2], RECOVER_2_0);
+    ASSERT_EQ(reader.recover_type[3], RECOVER_2_0);
+
+    // eof
+    ASSERT_FALSE(reader.update());
+    mask.close();
+}

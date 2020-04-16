@@ -3,18 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+#include <memory>
 #include "IBDmix/IBD_Segment.h"
 #include "IBDmix/IBD_Stack.h"
 #include "IBDmix/Genotype_Reader.h"
 
 class IBD_Collection{
     private:
-        std::vector<IBD_Segment> IBDs;
-        int num_samples;
+        std::vector<std::unique_ptr<IBD_Segment>> IBDs;
+        int num_samples = 0;
         IBD_Pool pool;
 
     public:
-        IBD_Collection();
+        ~IBD_Collection();
         void initialize(int num_samples, double threshold,
                 Genotype_Reader &reader, bool exclusive_end=true,
                 bool more_stats=false);
