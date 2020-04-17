@@ -11,14 +11,17 @@
 class IBD_Collection{
     private:
         std::vector<std::unique_ptr<IBD_Segment>> IBDs;
-        int num_samples = 0;
+        double threshold;
+        bool exclusive_end, more_stats;
         IBD_Pool pool;
 
     public:
+        IBD_Collection(double threshold, bool exclusive_end=true,
+                bool more_stats=false) : threshold(threshold),
+                exclusive_end(exclusive_end), more_stats(more_stats) {};
         ~IBD_Collection();
-        void initialize(int num_samples, double threshold,
-                Genotype_Reader &reader, bool exclusive_end=true,
-                bool more_stats=false);
+        void initialize(int num_samples, Genotype_Reader &reader);
+        void initializeWithSites(int num_samples, Genotype_Reader &reader);
         void update(Genotype_Reader &reader, std::ostream &output);
         void purge(std::ostream &output);
 };

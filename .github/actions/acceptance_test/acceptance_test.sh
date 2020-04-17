@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+# set -euo pipefail
 # set -x
 
 test_type=$1
@@ -137,17 +137,26 @@ elif [[ $test_type == "all_no_mask" ]]; then
 elif [[ $test_type == "extra" ]]; then
     genotype="$url_base/cell_data/outputs/genotype/altai_1kg_20.gz"
 
+    echo "more stats"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
+    read_result "$resultfile" | head
+    run_ibd_extra $genotype "--more-stats" | head
+    exit
+    cmp \
+        <(read_result "$resultfile") \
+        <(run_ibd_extra $genotype "--more-stats")
+
     echo "inclusive end"
     resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_inclusive.gz"
     cmp \
         <(read_result "$resultfile") \
         <(run_ibd_extra $genotype "--inclusive-end")
 
-    echo "more stats"
-    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
+    echo "with snps"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_snps.gz"
     cmp \
         <(read_result "$resultfile") \
-        <(run_ibd_extra $genotype "--more-stats")
+        <(run_ibd_extra $genotype "--write-snps")
 
     echo "with tab"
     resultfile="$url_base/terminal_tab/genotype.out.gz"
@@ -158,15 +167,10 @@ elif [[ $test_type == "extra" ]]; then
         <(run_genotype_long $arch $mod)
 
     echo "short args"
-    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_inclusive.gz"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_itw.gz"
     cmp \
-        <(read_result "$resultfile" | head -n 100) \
-        <(run_ibd_extra $genotype "-i" | head -n 100)
-
-    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
-    cmp \
-        <(read_result "$resultfile" | head -n 100) \
-        <(run_ibd_extra $genotype "-t" | head -n 100)
+        <(read_result "$resultfile") \
+        <(run_ibd_extra $genotype "-itw")
 
 else
     echo "Unknown test type $test_type"

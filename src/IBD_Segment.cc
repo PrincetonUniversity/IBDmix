@@ -3,8 +3,9 @@
 IBD_Segment::IBD_Segment(std::string segment_name, double threshold,
         IBD_Pool *pool, bool exclusive_end, bool more_stats) :
     name(segment_name), thresh(threshold), pool(pool),
-    exclusive_end(exclusive_end), more_stats(more_stats)
-{ }
+    exclusive_end(exclusive_end), more_stats(more_stats){
+        both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
+    }
 
 IBD_Segment::~IBD_Segment(){
     pool->reclaim_all(segment.top);
@@ -35,8 +36,7 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
 
     // first entry, reset counts
     if(segment.top->next == nullptr){
-        both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
-        update_counts(node->bitmask);
+        update_stats(node);
         segment.start = segment.end = segment.top;
         node->cumulative_lod = node->lod;
         return;
@@ -47,8 +47,7 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
 
     // new max, collapse to start
     if(segment.top->cumulative_lod >= segment.end->cumulative_lod){
-        // TODO does this need to be all between?
-        update_counts(node->bitmask);
+        update_stats(node);
         segment.end = segment.top;
         pool->reclaim_between(segment.end, segment.start);
     }
@@ -69,14 +68,7 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
                 << segment.start->position << '\t'
                 << pos << '\t'
                 << segment.end->cumulative_lod;
-            if (more_stats == true)
-                output << '\t' << sites << '\t'
-                    << both << '\t'
-                    << in_mask << '\t'
-                    << maf_low << '\t'
-                    << maf_high << '\t'
-                    << rec_2_0 << '\t'
-                    << rec_0_2;
+            report_stats(output);
             output << '\n';
         }
         // reverse list to reprocess remaining nodes
@@ -93,7 +85,8 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
     }
 }
 
-void IBD_Segment::update_counts(unsigned char bitmask){
+void IBD_Segment::update_stats(IBD_Node *node){
+    unsigned char bitmask = node->bitmask;
     if (more_stats == false)
         return;
     if((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH))) both++;
@@ -105,8 +98,17 @@ void IBD_Segment::update_counts(unsigned char bitmask){
     sites++;
 }
 
-int IBD_Segment::size(void){
-    return segment.size();
+void IBD_Segment::report_stats(std::ostream &output){
+    if (more_stats == true){
+        output << '\t' << sites << '\t'
+            << both << '\t'
+            << in_mask << '\t'
+            << maf_low << '\t'
+            << maf_high << '\t'
+            << rec_2_0 << '\t'
+            << rec_0_2;
+        both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
+    }
 }
 
 void IBD_Segment::write(std::ostream &strm) const{
@@ -123,6 +125,27 @@ void IBD_Segment::write(std::ostream &strm) const{
             strm << " <- end";
         strm << "\n";
     }
+}
+
+void IBD_Segment_Sites::update_stats(IBD_Node *node){
+    IBD_Segment::update_stats(node);
+    if(node->lod > 0)
+        positions.push_back(node->position);
+}
+
+void IBD_Segment_Sites::report_stats(std::ostream &output){
+    IBD_Segment::report_stats(output);
+    output << '\t';
+    for(const auto& pos : positions){
+        if(pos != positions[0])
+            output << ',';
+        output << pos;
+    }
+    positions.clear();
+}
+
+int IBD_Segment::size(void){
+    return segment.size();
 }
 
 std::ostream& operator<<(std::ostream &strm, const IBD_Segment &segment){

@@ -17,7 +17,10 @@ class IBD_Segment{
         bool more_stats;
 
         void add_node(IBD_Node *node, std::ostream &output);
-        void update_counts(unsigned char bitmask);
+
+    protected:
+        virtual void update_stats(IBD_Node *node);
+        virtual void report_stats(std::ostream &output);
 
     public:
         IBD_Segment(std::string name, double threshold, IBD_Pool *pool,
@@ -29,5 +32,17 @@ class IBD_Segment{
         int size();
         void write(std::ostream &strm) const;
 };
+
+class IBD_Segment_Sites : public IBD_Segment{
+    using IBD_Segment::IBD_Segment;
+
+    private:
+        std::vector<unsigned long int> positions;
+
+    protected:
+        void update_stats(IBD_Node *node);
+        void report_stats(std::ostream &output);
+};
+
 
 std::ostream& operator<<(std::ostream &strm, const IBD_Segment &segment);

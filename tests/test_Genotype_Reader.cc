@@ -152,7 +152,6 @@ TEST_F(SampleGenotype, CanGetFrequency){
     reader.initialize(sample);
 
     double result = 0;
-    reader.buffer = new char[100];
     reader.minor_allele_cutoff = 1;
 
     reader.buffer = "0 0 1 0 0";
@@ -204,7 +203,6 @@ TEST_F(SampleGenotype, CanProcessLineBuffer){
     std::istringstream sample("m4\nm3\nm2\nm1");
     reader.initialize(sample);
 
-    reader.buffer = new char[100];
     reader.lod_scores.reserve(4);
     reader.recover_type.reserve(4);
 
