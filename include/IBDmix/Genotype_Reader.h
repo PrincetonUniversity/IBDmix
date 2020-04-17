@@ -14,7 +14,6 @@
 #include "IBDmix/Mask_Reader.h"
 #include "IBDmix/Sample_Mapper.h"
 
-int find_token(const char * query, const char * str);
 const unsigned char IN_MASK = 1 << 0;
 const unsigned char MAF_LOW = 1 << 1;
 const unsigned char MAF_HIGH = 1 << 2;
@@ -24,19 +23,19 @@ const unsigned char RECOVER_0_2 = 1 << 4;
 
 class Genotype_Reader{
     private:
-        FILE * genotype;
-        size_t buf_size;
+        std::istream * genotype;
+        std::istringstream iss;
+        std::string token;
         Mask_Reader mask;
         Sample_Mapper sample_mapper;
 
     public:
-        Genotype_Reader(FILE * genotype, std::istream *mask=nullptr,
+        Genotype_Reader(std::istream * genotype, std::istream *mask=nullptr,
                 double archaic_error=0.01, double modern_error_max=0.002,
                 double modern_error_proportion=2, double minesp=1e-200,
                 int minor_allele_cutoff=1);
-        ~Genotype_Reader();
 
-        char *buffer;
+        std::string buffer;
         int minor_allele_cutoff;
         double archaic_error, modern_error_max, modern_error_proportion,
                minesp;

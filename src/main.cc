@@ -58,8 +58,8 @@ int main(int argc, char *argv[]){
 
     CLI11_PARSE(app, argc, argv);
 
-    FILE *genotype = nullptr;
-    genotype = (genotype_file == "-") ? stdin : fopen(genotype_file.c_str(), "r");
+    std::ifstream genotype;
+    genotype.open(genotype_file);
 
     std::ifstream sample;
     if(sample_file != "")
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
             << "maf_low\tmaf_high\trec_2_0\trec_0_2";
     output << '\n';
     Genotype_Reader reader(
-            genotype,
+            &genotype,
             &mask,
             archaic_error,
             modern_error_max,
@@ -115,8 +115,7 @@ int main(int argc, char *argv[]){
 
     ibds.purge(output);
 
-    if(genotype != nullptr)
-        fclose(genotype);
+    genotype.close();
     if(mask.is_open())
         mask.close();
     if(of.is_open())

@@ -1,8 +1,6 @@
 #include "IBDmix/Genotype_Reader.h"
 
-bool is_break(const char * chr);
-
-Genotype_Reader::Genotype_Reader(FILE * genotype, std::istream *mask,
+Genotype_Reader::Genotype_Reader(std::istream * genotype, std::istream *mask,
         double archaic_error, double modern_error_max,
         double modern_error_proportion, double minesp,
         int minor_allele_cutoff) :
@@ -11,21 +9,13 @@ Genotype_Reader::Genotype_Reader(FILE * genotype, std::istream *mask,
     modern_error_proportion(modern_error_proportion),
     minesp(minesp), minor_allele_cutoff(minor_allele_cutoff)
 {
-
-    buffer = nullptr;
-    buf_size = 0;
     lod_cache.resize(3);
-}
-
-Genotype_Reader::~Genotype_Reader(){
-    if(buffer)
-        free(buffer);
 }
 
 int Genotype_Reader::initialize(std::istream &samples, std::string archaic){
     // using samples list and header line, determine number of samples
     // and mapping from position to sample number
-    getline(&buffer, &buf_size, genotype);
+    std::getline(*genotype, buffer);
     std::istringstream iss(buffer);
     int result = sample_mapper.initialize(iss, samples, archaic);
 
@@ -37,12 +27,17 @@ int Genotype_Reader::initialize(std::istream &samples, std::string archaic){
 bool Genotype_Reader::update(){
     // read next line of input file
     // update the lod_scores for reading, handling masks
+    std::getline(*genotype, buffer);
+    iss.clear();
+    iss.str(buffer);
+
     // return false if the file is read fully
-    if(fscanf(genotype, "%i\t%lu\t%*s\t%*s\t", &chromosome, &position) == EOF){
+    if(!(iss >> chromosome && iss >> position))
         return false;
-    }
+
+    iss >> token;  // ref
+    iss >> token;  // alt
     line_filtering = 0;
-    getline(&buffer, &buf_size, genotype);
     // selected indicates if the line should have its lod calculated
     // set to false if one of the following occurs:
     // - in a masked region
@@ -52,6 +47,11 @@ bool Genotype_Reader::update(){
     if(!selected)
         line_filtering |= IN_MASK;
 
+    // find the 4th tab and erase from buffer
+    std::string::size_type ind = buffer.find('\t');
+    for (int i = 1; i < 4; ++i)
+        ind = buffer.find('\t', ind+1);
+    buffer.erase(0, ind+1);
     process_line_buffer(selected);
     return true;
 }
@@ -173,40 +173,6 @@ double Genotype_Reader::calculate_lod(char modern){
     return lod_cache[modern - '0'];
 }
 
-
 const std::vector<std::string>& Genotype_Reader::get_samples(){
     return sample_mapper.samples;
-}
-
-bool is_break(const char * chr){
-    return *chr == '\0' || *chr == '\t' || *chr == '\n';
-}
-
-int find_token(const char * query, const char * str){
-    // find the token index of query in str
-    // return -1 if not found
-    int result = 0;
-    if (str == nullptr)
-        return -1;
-    while(*str != '\0'){
-        const char * qp, * sp;
-        for(qp = query, sp = str; !is_break(sp) && !is_break(qp);
-                qp++, sp++){
-            if (*qp != *sp){
-                break;
-            }
-        }
-        //found
-        if(is_break(qp) && is_break(sp)){
-            return result;
-        }
-
-        // move str pointer to next token
-        result++;
-        for(; *sp != '\t' && *sp != '\0'; sp++);
-        if(*sp == '\0')
-            return -1;
-        str = sp+1;
-    }
-    return -1;
 }

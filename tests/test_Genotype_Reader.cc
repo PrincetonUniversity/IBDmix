@@ -44,46 +44,34 @@ class SampleGenotype : public ::testing::Test {
 };
 
 TEST_F(SampleGenotype, CanInitialize){
-    FILE * file = fopen("test_genotype.txt", "rt");
+    std::ifstream file;
+    file.open("test_genotype.txt");
     // use explicit values in case defaults change
-    Genotype_Reader reader(file, nullptr, 0.01, 0.002, 2, 1e-200);
+    Genotype_Reader reader(&file, nullptr, 0.01, 0.002, 2, 1e-200);
     std::istream sample_dummy(nullptr);
     ASSERT_EQ(4, reader.initialize(sample_dummy));
     ASSERT_THAT(reader.get_samples(), ElementsAre("m1", "m2", "m3", "m4"));
-    rewind(file);
+    file.clear();
+    file.seekg(0);
     std::istringstream samples;
 
     samples.str("m2\nm4\n");
     ASSERT_EQ(2, reader.initialize(samples));
     ASSERT_THAT(reader.get_samples(), ElementsAre("m2", "m4"));
 
-    rewind(file);
+    file.clear();
+    file.seekg(0);
     samples.str("m2\nm4");
     samples.clear();
     ASSERT_EQ(2, reader.initialize(samples));
     ASSERT_THAT(reader.get_samples(), ElementsAre("m2", "m4"));
 
-    rewind(file);
+    file.clear();
+    file.seekg(0);
     samples.str("m2");
     samples.clear();
     ASSERT_EQ(1, reader.initialize(samples));
     ASSERT_THAT(reader.get_samples(), ElementsAre("m2"));
-}
-
-TEST(GenotypeReader, CanFindToken){
-    ASSERT_EQ(2, find_token("tes", "test\tte\ttes"));
-    ASSERT_EQ(-1, find_token("not in", "test\tstring\t"));
-    ASSERT_EQ(0, find_token("test", "test\tstring\t"));
-    ASSERT_EQ(1, find_token("string", "test\tstring\t"));
-    ASSERT_EQ(1, find_token("string", "test\tstring"));
-    ASSERT_EQ(1, find_token("string\tthing", "test\tstring"));
-    ASSERT_EQ(1, find_token("string\tthing", "test\tstring\tthings"));
-    ASSERT_EQ(-1, find_token("strinG", "test\tstring"));
-    ASSERT_EQ(-1, find_token("string", "test\tstrinG"));
-    ASSERT_EQ(-1, find_token("string1", "test\tstring"));
-    ASSERT_EQ(-1, find_token("string", "test\tstring1"));
-    ASSERT_EQ(-1, find_token("String", "test\tstring1"));
-    ASSERT_EQ(-1, find_token("\0", "test\tstring1"));
 }
 
 double original_cal_lod(int source_gt, int target_gt, double pb, double aerr, double merr,
@@ -119,7 +107,8 @@ double original_cal_lod(int source_gt, int target_gt, double pb, double aerr, do
 }
 
 TEST(GenotypeReader, CanCalculateLod){
-    Genotype_Reader reader(nullptr);
+    std::ifstream file;
+    Genotype_Reader reader(&file);
 
     double pbs[] = {0, 0.01, 0.05, 0.1, 0.5, 0.9, 0.99, 1};
     double aerrs[] = {0.01, 0.02, 0.03};
@@ -156,7 +145,9 @@ TEST(GenotypeReader, CanCalculateLod){
 }
 
 TEST_F(SampleGenotype, CanGetFrequency){
-    Genotype_Reader reader(fopen("test_genotype.txt", "rt"));
+    std::ifstream file;
+    file.open("test_genotype.txt");
+    Genotype_Reader reader(&file);
     std::istringstream sample("m1\nm2\nm3\nm4");
     reader.initialize(sample);
 
@@ -164,7 +155,7 @@ TEST_F(SampleGenotype, CanGetFrequency){
     reader.buffer = new char[100];
     reader.minor_allele_cutoff = 1;
 
-    strcpy(reader.buffer, "0 0 1 0 0");
+    reader.buffer = "0 0 1 0 0";
     // fail since cutoff too low
     ASSERT_FALSE(reader.get_frequency(result));
     reader.minor_allele_cutoff = 0;
@@ -172,24 +163,24 @@ TEST_F(SampleGenotype, CanGetFrequency){
     ASSERT_EQ(0.125, result);
 
     reader.minor_allele_cutoff = 1;
-    strcpy(reader.buffer, "0 0 2 0 0");
+    reader.buffer = "0 0 2 0 0";
     ASSERT_TRUE(reader.get_frequency(result));
     ASSERT_EQ(0.25, result);
 
     reader.minor_allele_cutoff = 0;
-    strcpy(reader.buffer, "0 0 2 9 9");
+    reader.buffer = "0 0 2 9 9";
     ASSERT_TRUE(reader.get_frequency(result));
     ASSERT_EQ(0.5, result);
 
-    strcpy(reader.buffer, "0 9 2 9 9");
+    reader.buffer = "0 9 2 9 9";
     ASSERT_FALSE(reader.get_frequency(result));
     ASSERT_EQ(1, result);
 
-    strcpy(reader.buffer, "0 9 9 9 9");
+    reader.buffer = "0 9 9 9 9";
     ASSERT_FALSE(reader.get_frequency(result));
     ASSERT_EQ(0, result);
 
-    strcpy(reader.buffer, "0 0 0 0 0");
+    reader.buffer = "0 0 0 0 0";
     ASSERT_FALSE(reader.get_frequency(result));
     ASSERT_EQ(0, result);
 
@@ -207,7 +198,9 @@ TEST(GenotypeReader, CanGetModernError){
 }
 
 TEST_F(SampleGenotype, CanProcessLineBuffer){
-    Genotype_Reader reader(fopen("test_genotype.txt", "rt"));
+    std::ifstream file;
+    file.open("test_genotype.txt");
+    Genotype_Reader reader(&file);
     std::istringstream sample("m4\nm3\nm2\nm1");
     reader.initialize(sample);
 
@@ -215,7 +208,7 @@ TEST_F(SampleGenotype, CanProcessLineBuffer){
     reader.lod_scores.reserve(4);
     reader.recover_type.reserve(4);
 
-    strcpy(reader.buffer, "0 0 1 2 9");
+    reader.buffer = "0 0 1 2 9";
     reader.process_line_buffer(true);
     double result[] = {0, -1.617, 0.00432, 0.300};
     for(int i = 0; i < 4; i++)
@@ -231,7 +224,7 @@ TEST_F(SampleGenotype, CanProcessLineBuffer){
         ASSERT_TRUE(result[i] == reader.lod_scores[i] ||
                 abs((reader.lod_scores[i] - result[i])/result[i]) < 0.001);
 
-    strcpy(reader.buffer, "9 0 1 2 9");
+    reader.buffer = "9 0 1 2 9";
     reader.process_line_buffer(true);
     result[1] = 0;
     for(int i = 0; i < 4; i++)
@@ -243,13 +236,13 @@ TEST_F(SampleGenotype, CanProcessLineBuffer){
         ASSERT_TRUE(result[i] == reader.lod_scores[i] ||
                 abs((reader.lod_scores[i] - result[i])/result[i]) < 0.001);
 
-    strcpy(reader.buffer, "0 0 1 0 9");
+    reader.buffer = "0 0 1 0 9";
     reader.process_line_buffer(true);
     for(int i = 0; i < 4; i++)
         ASSERT_TRUE(result[i] == reader.lod_scores[i] ||
                 abs((reader.lod_scores[i] - result[i])/result[i]) < 0.001);
 
-    strcpy(reader.buffer, "1 1 1 2 9");
+    reader.buffer = "1 1 1 2 9";
     reader.process_line_buffer(true);
     result[1] = 0.16758;
     result[2] = 0.34366;
@@ -260,7 +253,9 @@ TEST_F(SampleGenotype, CanProcessLineBuffer){
 }
 
 TEST_F(SampleGenotype, CanUpdateDefaults) {
-    Genotype_Reader reader(fopen("test_genotype.txt", "rt"));
+    std::ifstream file;
+    file.open("test_genotype.txt");
+    Genotype_Reader reader(&file);
     std::istream sample_dummy(nullptr);
     reader.initialize(sample_dummy);
     ASSERT_EQ(4, reader.num_samples());
@@ -335,7 +330,9 @@ TEST_F(SampleGenotype, CanUpdateDefaults) {
 }
 
 TEST_F(SampleGenotype, CanUpdateSamples) {
-    Genotype_Reader reader(fopen("test_genotype.txt", "rt"));
+    std::ifstream file;
+    file.open("test_genotype.txt");
+    Genotype_Reader reader(&file);
     std::ofstream samples;
     samples.open("test_samples.txt");
     samples << "m4\nm2\n";
@@ -404,7 +401,9 @@ TEST_F(SampleGenotype, CanUpdateSamples) {
 TEST_F(SampleGenotype, CanUpdateMask) {
     std::ifstream mask;
     mask.open("test_mask.txt");
-    Genotype_Reader reader(fopen("test_genotype.txt", "rt"), &mask);
+    std::ifstream file;
+    file.open("test_genotype.txt");
+    Genotype_Reader reader(&file, &mask);
     std::istream sample_dummy(nullptr);
     reader.initialize(sample_dummy);
     ASSERT_EQ(4, reader.num_samples());
@@ -487,7 +486,9 @@ TEST_F(SampleGenotype, CanCheckLineFilter) {
     genotype.close();
     std::ifstream mask;
     mask.open("test_mask.txt");
-    Genotype_Reader reader(fopen("test_genotype.txt", "rt"), &mask);
+    std::ifstream file;
+    file.open("test_genotype.txt");
+    Genotype_Reader reader(&file, &mask);
     std::istream sample_dummy(nullptr);
     reader.initialize(sample_dummy);
     ASSERT_EQ(4, reader.num_samples());

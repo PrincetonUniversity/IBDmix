@@ -11,9 +11,9 @@ VCF_File::VCF_File(std::istream* in_file, std::ostream &output) : input(in_file)
             continue;
         // header with column names
         else if(buffer[0] == '#') {
-            std::istringstream iss(buffer);
+            iss.str(buffer);
             std::string token;
-            // read in first columns (not needed)
+            // read in first 9 columns (not needed)
             iss >> token; // CHROM
             iss >> token; // POS
             iss >> token; // ID
@@ -61,7 +61,8 @@ bool VCF_File::read_line(bool skip_non_informative){
         chromosome = -1;
         return false;
     }
-    std::istringstream iss(buffer);
+    iss.clear();
+    iss.str(buffer);
     if(!(iss >> chromosome && iss >> position))
         return false;
 

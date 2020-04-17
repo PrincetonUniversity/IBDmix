@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 
 class Mask_Reader{
     std::string chromosome = "";
