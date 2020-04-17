@@ -36,6 +36,7 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
 
     // first entry, reset counts
     if(segment.top->next == nullptr){
+        initialize_stats();
         update_stats(node);
         segment.start = segment.end = segment.top;
         node->cumulative_lod = node->lod;
@@ -85,10 +86,14 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
     }
 }
 
+void IBD_Segment::initialize_stats(){
+    both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
+}
+
 void IBD_Segment::update_stats(IBD_Node *node){
-    unsigned char bitmask = node->bitmask;
     if (more_stats == false)
         return;
+    unsigned char bitmask = node->bitmask;
     if((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH))) both++;
     if((bitmask & IN_MASK) && !(bitmask & MAF_LOW) && !(bitmask &MAF_HIGH)) in_mask++;
     if(!(bitmask & IN_MASK) && (bitmask & MAF_LOW)) maf_low++;
@@ -107,7 +112,6 @@ void IBD_Segment::report_stats(std::ostream &output){
             << maf_high << '\t'
             << rec_2_0 << '\t'
             << rec_0_2;
-        both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
     }
 }
 
@@ -127,6 +131,11 @@ void IBD_Segment::write(std::ostream &strm) const{
     }
 }
 
+void IBD_Segment_Sites::initialize_stats(){
+    IBD_Segment::initialize_stats();
+    positions.clear();
+}
+
 void IBD_Segment_Sites::update_stats(IBD_Node *node){
     IBD_Segment::update_stats(node);
     if(node->lod > 0)
@@ -141,7 +150,6 @@ void IBD_Segment_Sites::report_stats(std::ostream &output){
             output << ',';
         output << pos;
     }
-    positions.clear();
 }
 
 int IBD_Segment::size(void){

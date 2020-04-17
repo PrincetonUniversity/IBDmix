@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
             " to first sample in genotype file");
 
     std::string mask_file = "";
-    app.add_option("-r,--mask-file", mask_file, "Mask of regions to 'remove'. "
+    app.add_option("-r,--mask", mask_file, "Mask of regions to 'remove'. "
             "Regions in bed file have LOD set to 0")
         ->check(CLI::ExistingFile);
 

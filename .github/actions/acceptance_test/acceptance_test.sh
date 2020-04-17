@@ -139,9 +139,6 @@ elif [[ $test_type == "extra" ]]; then
 
     echo "more stats"
     resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
-    read_result "$resultfile" | head
-    run_ibd_extra $genotype "--more-stats" | head
-    exit
     cmp \
         <(read_result "$resultfile") \
         <(run_ibd_extra $genotype "--more-stats")

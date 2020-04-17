@@ -19,6 +19,7 @@ class IBD_Segment{
         void add_node(IBD_Node *node, std::ostream &output);
 
     protected:
+        virtual void initialize_stats();
         virtual void update_stats(IBD_Node *node);
         virtual void report_stats(std::ostream &output);
 
@@ -40,6 +41,7 @@ class IBD_Segment_Sites : public IBD_Segment{
         std::vector<unsigned long int> positions;
 
     protected:
+        void initialize_stats();
         void update_stats(IBD_Node *node);
         void report_stats(std::ostream &output);
 };
