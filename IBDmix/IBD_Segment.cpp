@@ -51,7 +51,8 @@ void IBD_Segment::add_node(struct IBD_Node *new_node, FILE * output){
 
     // new max, collapse to start
     if(top->cumulative_lod >= end->cumulative_lod){
-        update_counts(new_node->bitmask);
+        for(IBD_Node * ptr = top; ptr != end; ptr = ptr->next)
+            update_counts(ptr->bitmask);
         end = top;
         reclaim_between(end, start);
     }
