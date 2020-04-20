@@ -6,6 +6,7 @@ project(IBDmix VERSION 0.2
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
+option(BUILD_TESTS "Build unit tests" OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
@@ -47,7 +48,7 @@ set(CLI11_TESTING OFF)
 add_subdirectory("extern/CLI11")
 mark_as_advanced(CLI_CXX_STD CLI_EXAMPLES CLI_SINGLE_FILE CLI_SINGLE_FILE_TESTS CLI_TESTING)
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND ${BUILD_TESTING})
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTS)
   message(STATUS "TESTING NOW")
   enable_testing()
   include(GoogleTest)

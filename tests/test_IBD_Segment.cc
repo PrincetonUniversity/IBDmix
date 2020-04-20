@@ -328,6 +328,21 @@ TEST(IBDSegment, CanRecordStats){
             "test\t2\t7\t8\t1.9\t1\t0\t0\t0\t0\t0\t1\n"
             "test\t2\t9\t10\t0.5\t1\t0\t0\t0\t0\t1\t0\n");
     ASSERT_EQ(seg.size(), 0);
+
+    //one output with a late max
+    output.str("");
+    seg.add_lod(2, 1, 5, IN_MASK, output);
+    seg.add_lod(2, 2, -1, MAF_LOW, output);
+    seg.add_lod(2, 3, -1, MAF_LOW, output);
+    seg.add_lod(2, 4, -1, MAF_LOW, output);
+    seg.add_lod(2, 5, -0.5, MAF_LOW, output);
+    seg.add_lod(2, 6, -0.5, MAF_LOW, output);
+    seg.add_lod(2, 7, 20, IN_MASK, output);
+    seg.add_lod(2, 8, 5, MAF_HIGH, output);
+    seg.add_lod(2, 9, -30, RECOVER_0_2, output);
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t9\t26\t8\t0\t2\t5\t1\t0\t0\n");
+    ASSERT_EQ(seg.size(), 0);
 }
 
 TEST(IBDSegment, CanRecordStatsInclusive){

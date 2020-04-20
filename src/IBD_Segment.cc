@@ -48,7 +48,9 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
 
     // new max, collapse to start
     if(segment.top->cumulative_lod >= segment.end->cumulative_lod){
-        update_stats(node);
+        // add all nodes from top to end
+        for(IBD_Node * ptr = segment.top; ptr != segment.end; ptr=ptr->next)
+            update_stats(ptr);
         segment.end = segment.top;
         pool->reclaim_between(segment.end, segment.start);
     }
