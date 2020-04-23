@@ -1,7 +1,7 @@
 #!/bin/bash
 
+# TODO re enable euo
 # set -euo pipefail
-# set -x
 
 test_type=$1
 
@@ -19,7 +19,7 @@ url_base="http://tigress-web.princeton.edu/~tcomi/ibdmix_tests"
 
 
 read_result() {
-    wget -qO - $1 | zcat
+    wget -qO - $1 | zcat | head
 }
 
 run_genotype() {
@@ -87,6 +87,15 @@ run_ibd_extra() {
         --output >( cat )
 }
 
+run_ibd_extra_mask() {
+    $ibdmix \
+        -g <(wget -qO - $1 | zcat) \
+        -s <(wget -qO - "$url_base/cell_data/samples/GWD.txt") \
+        $2 \
+        -r <(wget -qO - $3) \
+        --output >( cat )
+}
+
 if [[ $test_type == "gen_20" ]]; then
     resultfile="$url_base/cell_data/outputs/genotype/altai_1kg_20.gz"
     mod="$url_base/cell_data/mod_chr20.vcf.gz"
@@ -136,6 +145,16 @@ elif [[ $test_type == "all_no_mask" ]]; then
 
 elif [[ $test_type == "extra" ]]; then
     genotype="$url_base/cell_data/outputs/genotype/altai_1kg_20.gz"
+    mask="$url_base/cell_data/masks/chr20.bed"
+
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_snps.gz"
+    read_result "$resultfile" | head
+    run_ibd_extra $genotype "--write-snps" | head
+    exit
+    # run_ibd_extra_mask $genotype "-itw" $mask | gzip > /tigress/tcomi/public_html/ibdmix_tests/cell_data/outputs/ibd_raw/GWD_20_itw_mask.gz
+    # run_ibd_extra $genotype "-t" | gzip > /tigress/tcomi/public_html/ibdmix_tests/cell_data/outputs/ibd_raw/GWD_20_stats.gz
+    # run_ibd_extra $genotype "-itw" | gzip > /tigress/tcomi/public_html/ibdmix_tests/cell_data/outputs/ibd_raw/GWD_20_itw.gz
+    # exit
 
     echo "more stats"
     resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
@@ -168,6 +187,12 @@ elif [[ $test_type == "extra" ]]; then
     cmp \
         <(read_result "$resultfile") \
         <(run_ibd_extra $genotype "-itw")
+
+    echo "short args mask"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_itw_mask.gz"
+    cmp \
+        <(read_result "$resultfile") \
+        <(run_ibd_extra_mask $genotype "-itw" $mask)
 
 else
     echo "Unknown test type $test_type"

@@ -10,18 +10,19 @@
 
 class IBD_Collection{
     private:
-        std::vector<std::unique_ptr<IBD_Segment>> IBDs;
+        std::vector<IBD_Segment> IBDs;
         double threshold;
-        bool exclusive_end, more_stats;
+        bool exclusive_end;
         IBD_Pool pool;
 
     public:
-        IBD_Collection(double threshold, bool exclusive_end=true,
-                bool more_stats=false) : threshold(threshold),
-                exclusive_end(exclusive_end), more_stats(more_stats) {};
-        ~IBD_Collection();
-        void initialize(int num_samples, Genotype_Reader &reader);
-        void initializeWithSites(int num_samples, Genotype_Reader &reader);
+        IBD_Collection(double threshold, bool exclusive_end=true) :
+            threshold(threshold), exclusive_end(exclusive_end){};
+        void initialize(Genotype_Reader &reader);
         void update(Genotype_Reader &reader, std::ostream &output);
         void purge(std::ostream &output);
+
+        enum Recorder { counts, sites, lods };
+        void add_recorder(IBD_Collection::Recorder type);
+        void writeHeader(std::ostream &strm) const;
 };

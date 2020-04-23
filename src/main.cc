@@ -42,6 +42,7 @@ int main(int argc, char *argv[]){
     bool more_stats = false;
     bool inclusive_end = false;
     bool include_sites = false;
+    bool include_lods = false;
     app.add_option("-d,--LOD-threshold", LOD_threshold,
             "Threshold for emitting regions");
     app.add_option("-m,--minor-allele-count-threshold", ma_threshold,
@@ -58,6 +59,9 @@ int main(int argc, char *argv[]){
             "Change regions to be closed over [start, end]");
     app.add_flag("-w,--write-snps", include_sites,
             "Also include positions with positive LOD as a CSV list");
+    app.add_flag("--write-lods", include_lods,
+            "Also include LOD scores of positive LOD as a CSV list. "
+            "Same order as SNPs.");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -88,12 +92,7 @@ int main(int argc, char *argv[]){
 
     // write header
     output << "ID\tchrom\tstart\tend\tslod";
-    if (more_stats)
-        output <<  "\tsites\tmask_and_maf\tin_mask\t"
-            << "maf_low\tmaf_high\trec_2_0\trec_0_2";
-    if(include_sites)
-        output << "\tSNPs";
-    output << '\n';
+
     Genotype_Reader reader(
             &genotype,
             &mask,
@@ -107,12 +106,18 @@ int main(int argc, char *argv[]){
     if(sample.is_open())
         sample.close();
 
-    IBD_Collection ibds(LOD_threshold, exclusive_end, more_stats);
+    IBD_Collection ibds(LOD_threshold, exclusive_end);
 
+    ibds.initialize(reader);
+    if (more_stats)
+        ibds.add_recorder(IBD_Collection::Recorder::counts);
     if(include_sites)
-        ibds.initializeWithSites(num_samples, reader);
-    else
-        ibds.initialize(num_samples, reader);
+        ibds.add_recorder(IBD_Collection::Recorder::sites);
+    if(include_lods)
+        ibds.add_recorder(IBD_Collection::Recorder::lods);
+
+    ibds.writeHeader(output);
+    output << '\n';
 
     while(reader.update())
         ibds.update(reader, output);

@@ -16,19 +16,24 @@ target_include_directories(sample_mapper PUBLIC ../include)
 
 add_library(genotype_reader STATIC Genotype_Reader.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Genotype_Reader.h)
 target_include_directories(genotype_reader PUBLIC ../include)
-target_link_libraries(genotype_reader 
+target_link_libraries(genotype_reader
     mask_reader sample_mapper)
+
+add_library(recorders STATIC Segment_Recorders.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Segment_Recorders.h)
+target_include_directories(recorders PUBLIC ../include)
+target_link_libraries(recorders
+    ibd_stack genotype_reader)
 
 add_library(ibd_segment IBD_Segment.cc
     ${IBDmix_SOURCE_DIR}/include/IBDmix/IBD_Segment.h)
 target_include_directories(ibd_segment PUBLIC ../include)
-target_link_libraries(ibd_segment 
-    genotype_reader ibd_stack)
+target_link_libraries(ibd_segment
+    genotype_reader ibd_stack recorders)
 
 add_library(ibd_collection IBD_Collection.cc
     ${IBDmix_SOURCE_DIR}/include/IBDmix/IBD_Collection.h)
 target_include_directories(ibd_collection PUBLIC ../include)
-target_link_libraries(ibd_collection 
+target_link_libraries(ibd_collection
     genotype_reader ibd_segment ibd_stack)
 
 add_executable(ibdmix main.cc)

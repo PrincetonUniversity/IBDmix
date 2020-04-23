@@ -1,15 +1,20 @@
 #include "IBDmix/IBD_Segment.h"
 
 IBD_Segment::IBD_Segment(std::string segment_name, double threshold,
-        IBD_Pool *pool, bool exclusive_end, bool more_stats) :
+        IBD_Pool *pool, bool exclusive_end) :
     name(segment_name), thresh(threshold), pool(pool),
-    exclusive_end(exclusive_end), more_stats(more_stats){
-        both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
-    }
+    exclusive_end(exclusive_end){}
 
 IBD_Segment::~IBD_Segment(){
     pool->reclaim_all(segment.top);
+    for(auto & recorder : recorders)
+        recorder.reset();
 }
+
+void IBD_Segment::add_recorder(std::shared_ptr<Recorder> recorder){
+    recorders.push_back(recorder);
+}
+
 
 void IBD_Segment::add_lod(int chromosome, unsigned long int position,
         double lod, unsigned char bitmask, std::ostream &output){
@@ -89,32 +94,23 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
 }
 
 void IBD_Segment::initialize_stats(){
-    both = sites = in_mask = maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
+    for( auto &recorder : recorders)
+        recorder->initializeSegment();
 }
 
 void IBD_Segment::update_stats(IBD_Node *node){
-    if (more_stats == false)
-        return;
-    unsigned char bitmask = node->bitmask;
-    if((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH))) both++;
-    if((bitmask & IN_MASK) && !(bitmask & MAF_LOW) && !(bitmask &MAF_HIGH)) in_mask++;
-    if(!(bitmask & IN_MASK) && (bitmask & MAF_LOW)) maf_low++;
-    if(!(bitmask & IN_MASK) && (bitmask & MAF_HIGH)) maf_high++;
-    if(bitmask & RECOVER_2_0) rec_2_0++;
-    if(bitmask & RECOVER_0_2) rec_0_2++;
-    sites++;
+    for( auto &recorder : recorders)
+        recorder->record(node);
 }
 
 void IBD_Segment::report_stats(std::ostream &output){
-    if (more_stats == true){
-        output << '\t' << sites << '\t'
-            << both << '\t'
-            << in_mask << '\t'
-            << maf_low << '\t'
-            << maf_high << '\t'
-            << rec_2_0 << '\t'
-            << rec_0_2;
-    }
+    for( auto &recorder : recorders)
+        recorder->report(output);
+}
+
+void IBD_Segment::writeHeader(std::ostream &strm) const{
+    for( auto &recorder : recorders)
+        recorder->writeHeader(strm);
 }
 
 void IBD_Segment::write(std::ostream &strm) const{
@@ -130,27 +126,6 @@ void IBD_Segment::write(std::ostream &strm) const{
         if (ptr == segment.end)
             strm << " <- end";
         strm << "\n";
-    }
-}
-
-void IBD_Segment_Sites::initialize_stats(){
-    IBD_Segment::initialize_stats();
-    positions.clear();
-}
-
-void IBD_Segment_Sites::update_stats(IBD_Node *node){
-    IBD_Segment::update_stats(node);
-    if(node->lod > 0)
-        positions.push_back(node->position);
-}
-
-void IBD_Segment_Sites::report_stats(std::ostream &output){
-    IBD_Segment::report_stats(output);
-    output << '\t';
-    for(const auto& pos : positions){
-        if(pos != positions[0])
-            output << ',';
-        output << pos;
     }
 }
 

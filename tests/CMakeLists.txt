@@ -16,6 +16,7 @@ macro(package_add_test TESTNAME FILES LIBRARIES)
 endmacro()
 
 package_add_test(ibd_stack_test test_IBD_Stack.cc ibd_stack)
+package_add_test(recorder_test test_Segment_Recorders.cc recorders)
 package_add_test(ibd_segment_test test_IBD_Segment.cc ibd_segment)
 package_add_test(mask_reader_test test_Mask_Reader.cc mask_reader)
 package_add_test(sample_mapper_test test_Sample_Mapper.cc sample_mapper)
