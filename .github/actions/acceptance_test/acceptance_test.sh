@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# TODO re enable euo
-# set -euo pipefail
+set -euo pipefail
 
 test_type=$1
 
@@ -19,7 +18,7 @@ url_base="http://tigress-web.princeton.edu/~tcomi/ibdmix_tests"
 
 
 read_result() {
-    wget -qO - $1 | zcat | head
+    wget -qO - $1 | zcat
 }
 
 run_genotype() {
@@ -147,15 +146,6 @@ elif [[ $test_type == "extra" ]]; then
     genotype="$url_base/cell_data/outputs/genotype/altai_1kg_20.gz"
     mask="$url_base/cell_data/masks/chr20.bed"
 
-    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_snps.gz"
-    read_result "$resultfile" | head
-    run_ibd_extra $genotype "--write-snps" | head
-    exit
-    # run_ibd_extra_mask $genotype "-itw" $mask | gzip > /tigress/tcomi/public_html/ibdmix_tests/cell_data/outputs/ibd_raw/GWD_20_itw_mask.gz
-    # run_ibd_extra $genotype "-t" | gzip > /tigress/tcomi/public_html/ibdmix_tests/cell_data/outputs/ibd_raw/GWD_20_stats.gz
-    # run_ibd_extra $genotype "-itw" | gzip > /tigress/tcomi/public_html/ibdmix_tests/cell_data/outputs/ibd_raw/GWD_20_itw.gz
-    # exit
-
     echo "more stats"
     resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
     cmp \
@@ -173,6 +163,12 @@ elif [[ $test_type == "extra" ]]; then
     cmp \
         <(read_result "$resultfile") \
         <(run_ibd_extra $genotype "--write-snps")
+
+    echo "with lods"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_lods.gz"
+    cmp \
+        <(read_result "$resultfile") \
+        <(run_ibd_extra $genotype "--write-snps --write-lods")
 
     echo "with tab"
     resultfile="$url_base/terminal_tab/genotype.out.gz"
