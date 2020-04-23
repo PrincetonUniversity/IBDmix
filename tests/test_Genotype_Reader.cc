@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <iostream>
-#include <fstream>
 #include <stdio.h>
 #include <math.h>
 
@@ -12,62 +11,52 @@ using ::testing::ElementsAre;
 class SampleGenotype : public ::testing::Test {
     protected:
         void SetUp() {
-            std::ofstream genotype;
-            genotype.open("test_genotype.txt");
-            genotype << "chrom\tpos\tref\talt\tn1\tm1\tm2\tm3\tm4\n"
-                << "1\t2\tA\tT\t1\t0\t0\t0\t0\n"
-                << "1\t3\tA\tT\t2\t0\t0\t0\t0\n"
-                << "1\t4\tA\tT\t1\t0\t1\t1\t1\n"
-                << "1\t104\tA\tT\t1\t0\t1\t1\t1\n"
-                << "1\t105\tA\tT\t0\t2\t1\t1\t1\n"
-                << "2\t125\tA\tT\t0\t2\t2\t1\t1\n"
-                << "3\t126\tA\tT\t0\t2\t2\t2\t2\n"
-                ;
-            genotype.close();
-            std::ofstream mask;
-            mask.open("test_mask.txt");
-            mask << "1 100 120\n"
-                << "1 130 140\n"
-                << "1 160 161\n"
-                << "1 190 200\n"
-                << "1 260 281\n"
-                << "2 130 140\n"
-                << "4 130 140\n"
-                << "8 130 140\n"
-                ;
-            mask.close();
+            genotype.str("chrom\tpos\tref\talt\tn1\tm1\tm2\tm3\tm4\n"
+                "1\t2\tA\tT\t1\t0\t0\t0\t0\n"
+                "1\t3\tA\tT\t2\t0\t0\t0\t0\n"
+                "1\t4\tA\tT\t1\t0\t1\t1\t1\n"
+                "1\t104\tA\tT\t1\t0\t1\t1\t1\n"
+                "1\t105\tA\tT\t0\t2\t1\t1\t1\n"
+                "2\t125\tA\tT\t0\t2\t2\t1\t1\n"
+                "3\t126\tA\tT\t0\t2\t2\t2\t2\n"
+                );
+            mask.str("1 100 120\n"
+                "1 130 140\n"
+                "1 160 161\n"
+                "1 190 200\n"
+                "1 260 281\n"
+                "2 130 140\n"
+                "4 130 140\n"
+                "8 130 140\n"
+                );
         }
-        void TearDown() {
-            remove("test_genotype.txt");
-            remove("test_mask.txt");
-        }
+        std::istringstream genotype;
+        std::istringstream mask;
 };
 
 TEST_F(SampleGenotype, CanInitialize){
-    std::ifstream file;
-    file.open("test_genotype.txt");
     // use explicit values in case defaults change
-    Genotype_Reader reader(&file, nullptr, 0.01, 0.002, 2, 1e-200);
+    Genotype_Reader reader(&genotype, nullptr, 0.01, 0.002, 2, 1e-200);
     std::istream sample_dummy(nullptr);
     ASSERT_EQ(4, reader.initialize(sample_dummy));
     ASSERT_THAT(reader.get_samples(), ElementsAre("m1", "m2", "m3", "m4"));
-    file.clear();
-    file.seekg(0);
+    genotype.clear();
+    genotype.seekg(0);
     std::istringstream samples;
 
     samples.str("m2\nm4\n");
     ASSERT_EQ(2, reader.initialize(samples));
     ASSERT_THAT(reader.get_samples(), ElementsAre("m2", "m4"));
 
-    file.clear();
-    file.seekg(0);
+    genotype.clear();
+    genotype.seekg(0);
     samples.str("m2\nm4");
     samples.clear();
     ASSERT_EQ(2, reader.initialize(samples));
     ASSERT_THAT(reader.get_samples(), ElementsAre("m2", "m4"));
 
-    file.clear();
-    file.seekg(0);
+    genotype.clear();
+    genotype.seekg(0);
     samples.str("m2");
     samples.clear();
     ASSERT_EQ(1, reader.initialize(samples));
@@ -107,7 +96,7 @@ double original_cal_lod(int source_gt, int target_gt, double pb, double aerr, do
 }
 
 TEST(GenotypeReader, CanCalculateLod){
-    std::ifstream file;
+    std::istringstream file;
     Genotype_Reader reader(&file);
 
     double pbs[] = {0, 0.01, 0.05, 0.1, 0.5, 0.9, 0.99, 1};
@@ -145,9 +134,7 @@ TEST(GenotypeReader, CanCalculateLod){
 }
 
 TEST_F(SampleGenotype, CanGetFrequency){
-    std::ifstream file;
-    file.open("test_genotype.txt");
-    Genotype_Reader reader(&file);
+    Genotype_Reader reader(&genotype);
     std::istringstream sample("m1\nm2\nm3\nm4");
     reader.initialize(sample);
 
@@ -197,9 +184,7 @@ TEST(GenotypeReader, CanGetModernError){
 }
 
 TEST_F(SampleGenotype, CanProcessLineBuffer){
-    std::ifstream file;
-    file.open("test_genotype.txt");
-    Genotype_Reader reader(&file);
+    Genotype_Reader reader(&genotype);
     std::istringstream sample("m4\nm3\nm2\nm1");
     reader.initialize(sample);
 
@@ -251,9 +236,7 @@ TEST_F(SampleGenotype, CanProcessLineBuffer){
 }
 
 TEST_F(SampleGenotype, CanUpdateDefaults) {
-    std::ifstream file;
-    file.open("test_genotype.txt");
-    Genotype_Reader reader(&file);
+    Genotype_Reader reader(&genotype);
     std::istream sample_dummy(nullptr);
     reader.initialize(sample_dummy);
     ASSERT_EQ(4, reader.num_samples());
@@ -328,17 +311,10 @@ TEST_F(SampleGenotype, CanUpdateDefaults) {
 }
 
 TEST_F(SampleGenotype, CanUpdateSamples) {
-    std::ifstream file;
-    file.open("test_genotype.txt");
-    Genotype_Reader reader(&file);
-    std::ofstream samples;
-    samples.open("test_samples.txt");
-    samples << "m4\nm2\n";
-    samples.close();
-    std::ifstream sample_file;
-    sample_file.open("test_samples.txt");
-    reader.initialize(sample_file, "m1");
-    sample_file.close();
+    Genotype_Reader reader(&genotype);
+    std::istringstream samples;
+    samples.str("m4\nm2\n");
+    reader.initialize(samples, "m1");
     ASSERT_EQ(2, reader.num_samples());
 
     //"1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
@@ -397,11 +373,7 @@ TEST_F(SampleGenotype, CanUpdateSamples) {
 }
 
 TEST_F(SampleGenotype, CanUpdateMask) {
-    std::ifstream mask;
-    mask.open("test_mask.txt");
-    std::ifstream file;
-    file.open("test_genotype.txt");
-    Genotype_Reader reader(&file, &mask);
+    Genotype_Reader reader(&genotype, &mask);
     std::istream sample_dummy(nullptr);
     reader.initialize(sample_dummy);
     ASSERT_EQ(4, reader.num_samples());
@@ -473,20 +445,13 @@ TEST_F(SampleGenotype, CanUpdateMask) {
     ASSERT_FALSE(reader.update());
     ASSERT_FALSE(reader.update());
     ASSERT_FALSE(reader.update());
-    mask.close();
 }
 
 TEST_F(SampleGenotype, CanCheckLineFilter) {
-    std::ofstream genotype;
-    genotype.open("test_genotype.txt", std::ofstream::out | std::ofstream::app);
-    genotype << "4\t136\tA\tT\t0\t2\t2\t2\t2\n"
-        << "4\t137\tA\tT\t2\t0\t0\t0\t0\n";
-    genotype.close();
-    std::ifstream mask;
-    mask.open("test_mask.txt");
-    std::ifstream file;
-    file.open("test_genotype.txt");
-    Genotype_Reader reader(&file, &mask);
+    genotype.str(genotype.str() +
+            "4\t136\tA\tT\t0\t2\t2\t2\t2\n"
+            "4\t137\tA\tT\t2\t0\t0\t0\t0\n");
+    Genotype_Reader reader(&genotype, &mask);
     std::istream sample_dummy(nullptr);
     reader.initialize(sample_dummy);
     ASSERT_EQ(4, reader.num_samples());
@@ -583,5 +548,4 @@ TEST_F(SampleGenotype, CanCheckLineFilter) {
 
     // eof
     ASSERT_FALSE(reader.update());
-    mask.close();
 }
