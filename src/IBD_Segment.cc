@@ -54,8 +54,8 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
     // new max, collapse to start
     if(segment.top->cumulative_lod >= segment.end->cumulative_lod){
         // add all nodes from top to end
-        for(IBD_Node * ptr = segment.top; ptr != segment.end; ptr=ptr->next)
-            update_stats(ptr);
+        if(!recorders.empty())
+            update_stats_recursive(segment.top);
         segment.end = segment.top;
         pool->reclaim_between(segment.end, segment.start);
     }
@@ -96,6 +96,15 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output){
 void IBD_Segment::initialize_stats(){
     for( auto &recorder : recorders)
         recorder->initializeSegment();
+}
+
+void IBD_Segment::update_stats_recursive(IBD_Node *node){
+    // since the list is linked in decreasing order, need to traverse in
+    // reverse via recursion
+    if(node == segment.end || node == nullptr)
+        return;
+    update_stats_recursive(node->next);
+    update_stats(node);
 }
 
 void IBD_Segment::update_stats(IBD_Node *node){

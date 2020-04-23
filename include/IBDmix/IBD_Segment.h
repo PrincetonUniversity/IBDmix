@@ -20,6 +20,7 @@ class IBD_Segment{
 
         void add_node(IBD_Node *node, std::ostream &output);
         void initialize_stats();
+        void update_stats_recursive(IBD_Node *node);
         void update_stats(IBD_Node *node);
         void report_stats(std::ostream &output);
 

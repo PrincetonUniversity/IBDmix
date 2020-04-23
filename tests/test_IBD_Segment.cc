@@ -451,39 +451,6 @@ TEST(IBDSegment, CanRecordStatsInclusive){
     ASSERT_EQ(seg.size(), 0);
 }
 
-TEST(IBDSegmentSites, CanAddBasicLOD){
-    IBD_Pool pool(5);
-    std::ostringstream output;
-    IBD_Segment seg("test", 0, &pool);
-    seg.add_recorder(std::make_shared<SiteRecorder>());
-    ASSERT_EQ(seg.size(), 0);
-
-    seg.add_lod(1, 1, -1, none, output);
-    ASSERT_EQ(seg.size(), 0);
-
-    seg.add_lod(1, 2, 0.5, none, output);
-    ASSERT_EQ(seg.size(), 1);
-
-    // add some decreasing values to keep end at start
-    seg.add_lod(1, 3, -0.1, none, output);
-    seg.add_lod(1, 4, -0.1, none, output);
-    seg.add_lod(1, 5, -0.1, none, output);
-    ASSERT_EQ(seg.size(), 4);
-
-    // add an increasing, back to 0.4
-    seg.add_lod(1, 6, 0.2, none, output);
-    ASSERT_EQ(seg.size(), 5);
-
-    //add new maxes (equal, then more)
-    seg.add_lod(1, 7, 0.1, none, output);
-    ASSERT_EQ(seg.size(), 2);
-
-    seg.add_lod(1, 9, -0.1, none, output);
-    seg.add_lod(1, 10, -0.1, none, output);
-    seg.add_lod(1, 11, 0.3, none, output);
-    ASSERT_EQ(seg.size(), 2);
-}
-
 TEST(IBDSegmentSites, CanAddLODOutput){
     IBD_Pool pool(5);
     std::ostringstream output;
@@ -567,6 +534,23 @@ TEST(IBDSegmentSites, CanAddLODOutput){
             "test\t2\t9\t12\t0.5\t9,11\n");
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 20);
+
+    //one output with a late max
+    output.str("");
+    seg.add_lod(2, 1, 5, IN_MASK, output);
+    seg.add_lod(2, 2, -1, MAF_LOW, output);
+    seg.add_lod(2, 3, -1, MAF_LOW, output);
+    seg.add_lod(2, 4, -1, MAF_LOW, output);
+    seg.add_lod(2, 5, -0.5, MAF_LOW, output);
+    seg.add_lod(2, 6, -0.5, MAF_LOW, output);
+    seg.add_lod(2, 7, 0.1, MAF_LOW, output);
+    seg.add_lod(2, 8, 0.1, MAF_LOW, output);
+    seg.add_lod(2, 9, 20, IN_MASK, output);
+    seg.add_lod(2, 10, 5, MAF_HIGH, output);
+    seg.add_lod(2, 11, -30, RECOVER_0_2, output);
+    ASSERT_EQ(output.str(),
+            "test\t2\t1\t11\t26.2\t1,7,8,9,10\n");
+    ASSERT_EQ(seg.size(), 0);
 }
 
 TEST(IBDSegmentSites, CanPurge){
