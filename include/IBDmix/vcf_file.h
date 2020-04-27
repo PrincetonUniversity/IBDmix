@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string.h>
 
 typedef unsigned long int ulnt;
 
@@ -12,6 +13,10 @@ class VCF_File
         std::istream* input;
         std::string buffer;
         std::istringstream iss;
+
+        bool simpleParse(const char *start);
+        bool complexParse(const char *start, int gtInd);
+        bool parse(const char *start, std::string &format);
     public:
         int chromosome;
         ulnt position;

@@ -116,3 +116,46 @@ TEST(VcfFile, CanHandleModern) {
 
     ASSERT_TRUE(!vcf.update());
 }
+
+TEST(VcfFile, CanParseComplexFormat){
+    std::istringstream vcf_file(
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tI1\tI2\tI3\tI4\tI5\n"
+            "3\t10\t.\tC\tG\t.\tPASS\t.\tGT:and:others"
+            "\t1/0\t1/0:asdf:asdf\t0/1\t1/0\t./.\t\n"
+            "3\t11\t.\tC\tG\t.\tPASS\t.\tand:others:GT"
+            "\t::1/0\tasdf:asdf:1/0\ta::0/1\ta:b:1/0\tasdf:asdfasdfasdf:./.\n"
+            "3\t12\t.\tC\tG\t.\tPASS\t.\tand:others:XT"
+            "\t::1/0\tasdf:asdf:1/0\ta::0/1\ta:b:1/0\tasdf:asdfasdfasdf:./.\n"
+            );
+    std::ostringstream output;
+    VCF_File vcf(&vcf_file, output);
+    ASSERT_STREQ(output.str().c_str(), "\tI1\tI2\tI3\tI4\tI5");
+    ASSERT_EQ(vcf.number_individuals, 5);
+
+    // ends with tab, GT at front
+    ASSERT_TRUE(vcf.update());
+    ASSERT_EQ(vcf.chromosome, 3);
+    ASSERT_EQ(vcf.position, 10);
+    ASSERT_EQ(vcf.reference, 'C');
+    ASSERT_EQ(vcf.alternative, 'G');
+    ASSERT_EQ(vcf.genotypes[0], '1');
+    ASSERT_EQ(vcf.genotypes[2], '1');
+    ASSERT_EQ(vcf.genotypes[4], '1');
+    ASSERT_EQ(vcf.genotypes[6], '1');
+    ASSERT_EQ(vcf.genotypes[8], '9');
+
+    // GT at end
+    ASSERT_TRUE(vcf.update());
+    ASSERT_EQ(vcf.chromosome, 3);
+    ASSERT_EQ(vcf.position, 11);
+    ASSERT_EQ(vcf.reference, 'C');
+    ASSERT_EQ(vcf.alternative, 'G');
+    ASSERT_EQ(vcf.genotypes[0], '1');
+    ASSERT_EQ(vcf.genotypes[2], '1');
+    ASSERT_EQ(vcf.genotypes[4], '1');
+    ASSERT_EQ(vcf.genotypes[6], '1');
+    ASSERT_EQ(vcf.genotypes[8], '9');
+
+    // no GT in format
+    ASSERT_THROW(vcf.update(), std::invalid_argument);
+}

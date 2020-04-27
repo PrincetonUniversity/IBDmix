@@ -8,8 +8,8 @@ ibdmix="src/ibdmix"
 generate_gt="src/generate_gt"
 # to work for local tests
 if [[ ! -f $ibdmix ]]; then
-    ibdmix="../../../build/src/ibdmix"
-    generate_gt="../../../build/src/generate_gt"
+    ibdmix="../../../release/src/ibdmix"
+    generate_gt="../../../release/src/generate_gt"
 fi
 
 echo "starting $test_type"
@@ -146,6 +146,14 @@ elif [[ $test_type == "extra" ]]; then
     genotype="$url_base/cell_data/outputs/genotype/altai_1kg_20.gz"
     mask="$url_base/cell_data/masks/chr20.bed"
 
+    echo "with tab"
+    resultfile="$url_base/terminal_tab/genotype.out.gz"
+    mod="$url_base/terminal_tab/mod_chr22.vcf.gz"
+    arch="$url_base/terminal_tab/AltNea_n10000.vcf.gz"
+    cmp \
+        <(read_result $resultfile) \
+        <(run_genotype_long $arch $mod)
+
     echo "more stats"
     resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_stats.gz"
     cmp \
@@ -169,14 +177,6 @@ elif [[ $test_type == "extra" ]]; then
     cmp \
         <(read_result "$resultfile") \
         <(run_ibd_extra $genotype "--write-snps --write-lods")
-
-    echo "with tab"
-    resultfile="$url_base/terminal_tab/genotype.out.gz"
-    mod="$url_base/terminal_tab/mod_chr22.vcf.gz"
-    arch="$url_base/terminal_tab/AltNea_n10000.vcf.gz"
-    cmp \
-        <(read_result $resultfile) \
-        <(run_genotype_long $arch $mod)
 
     echo "short args"
     resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_itw.gz"

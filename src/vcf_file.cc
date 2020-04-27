@@ -88,18 +88,79 @@ bool VCF_File::read_line(bool skip_non_informative){
     iss >> token;  // INFO
     iss >> token;  // FORMAT
 
-    // read in genotypes
+    // skip to sample
+    std::string::size_type ind = buffer.find('\t');
+    for (int i = 1; i < 9; ++i)
+        ind = buffer.find('\t', ind+1);
+
+    bool none_valid = parse(buffer.c_str() + ind + 1, token);
+
+    // return true if skip is false or
+    // if skip is false but at least one informative found
+    return !skip_non_informative || !none_valid;
+}
+
+bool VCF_File::parse(const char *start, std::string &format){
+    // check if format is GT, otherwise need to parse more carefully
+    if(format == "GT")
+        return simpleParse(start);
+    else{
+        // format is complex, split by : finding index of GT
+        int ind = 0;
+        const char *fmt = format.c_str();
+        for(;;){
+            if(strncmp(fmt, "GT", 2) == 0)
+                return complexParse(start, ind);
+            ++ind;  // not found, onto next fmt
+            while(*fmt != ':' && *fmt != '\0')
+                ++fmt;
+            if(*fmt == '\0'){
+                throw std::invalid_argument("FORMAT must contain GT");
+            }
+            ++fmt;
+        }
+    }
+
+}
+
+bool VCF_File::simpleParse(const char *start){
     bool none_valid = true;
     int ind = 0;
-    while(iss >> token){
-        genotypes[ind] = token[0] + token[2] - '0';
+    while(ind < genotypes.size()){
+        genotypes[ind] = start[0] + start[2] - '0';
         // ',' = '.' + '.' - '0'
         genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
         if(none_valid && genotypes[ind] != '9')
             none_valid = false;
         ind += 2;
+        start += 4;  // gt (2) separator and tab
     }
-    // return true of skip is false or
-    // if skip is false but at least one informative found
-    return !skip_non_informative || !none_valid;
+    return none_valid;
+}
+
+bool VCF_File::complexParse(const char *start, int gtInd){
+    bool none_valid = true;
+    int ind = 0;
+    while(ind < genotypes.size()){
+        // move to the gtInd'th :
+        for(int i = 0; i < gtInd; ++i){
+            for(; *start != ':'; ++start)
+                ;
+            ++start;
+        }
+
+        genotypes[ind] = start[0] + start[2] - '0';
+        // ',' = '.' + '.' - '0'
+        genotypes[ind] = genotypes[ind] == ',' ? '9' : genotypes[ind];
+        if(none_valid && genotypes[ind] != '9')
+            none_valid = false;
+
+        ind += 2;
+
+        // move to next tab or null
+        while(*start != '\t' && *start != '\0')
+            ++start;
+        ++start;
+    }
+    return none_valid;
 }
