@@ -1,0 +1,28 @@
+name: UnitTests
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: CTest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Cmake 3.13
+        uses: ./.github/actions/cmake_test
+        with:
+          version: 3.13.5
+      - name: Cmake 3.14
+        uses: ./.github/actions/cmake_test
+        with:
+          version: 3.14.7
+      - name: Cmake 3.15
+        uses: ./.github/actions/cmake_test
+        with:
+          version: 3.15.6
+      - name: Cmake 3.16
+        uses: ./.github/actions/cmake_test
+        with:
+          version: 3.16.2

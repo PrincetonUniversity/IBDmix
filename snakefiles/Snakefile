@@ -9,6 +9,8 @@ for wild in yaml_wildcards:
         fmt = f'{{{wild}}}'
         if fmt in filename:
             paths[key] = filename.replace(fmt, paths[wild])
+paths['exe'] = paths['exe_root'] + '{exe}'
+exes = ['generate_gt', 'ibdmix']
 
 if 'sample_file' in paths:
     populations = glob_wildcards(paths['sample_file']).population
@@ -36,26 +38,37 @@ rule all:
     input:
         all_input
 
-rule make_generate_gt:
-    input:
-        paths['source_root'] + 'generate_gt.cpp'
-
+rule make_executables:
     output:
-        paths['exe_root'].format(exe='generate_gt')
+        expand(paths['exe'], exe=exes)
+
+    params:
+        targets=expand(f"{paths['source_root']}build/src/{{exe}}", exe=exes)
+
+    envmodules:
+        config['cmake_module']
 
     shell:
-        '{config[compiler]} {config[compiler_options]} {input} -o {output}'
+        '''
+        mkdir -p {paths[source_root]}build
+        cd {paths[source_root]}build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        cmake --build .
+        for f in {params.targets}; do mv $f {paths[exe_root]} ; done
+        cd ..
+        rm -rf build
+        '''
 
 rule generate_gt:
     input:
         modern=paths['modern_vcf'],
         archaic=paths['archaic_vcf'],
-        exe=paths['exe_root'].format(exe='generate_gt')
+        exe=paths['exe'].format(exe='generate_gt')
 
     output:
         paths['genotype_file']
 
-    threads: 2
+    threads: 1
 
     shell:
         '{input.exe} '
@@ -63,21 +76,9 @@ rule generate_gt:
             '--modern <(zcat {input.modern}) '
             '--output >(gzip > {output}) '
 
-rule make_ibdmix:
-    input:
-        [paths['source_root'] + src + '.cpp' for src in
-            ('IBD_Collection', 'IBD_Segment', 'IBD_Stack',
-             'Genotype_Reader', 'IBDmix')]
-
-    output:
-        paths['exe_root'].format(exe='ibdmix')
-
-    shell:
-        '{config[compiler]} {config[compiler_options]} {input} -o {output}'
-
 def get_ibd_input(wildcards):
     result = {'genotype': paths['genotype_file'].format(chrom=wildcards.chrom),
-              'exe': paths['exe_root'].format(exe='ibdmix')}
+              'exe': paths['exe'].format(exe='ibdmix')}
 
     if 'population' in wildcards.keys() and 'sample_file' in paths:
         result['samples'] = paths['sample_file'].format(
@@ -157,7 +158,7 @@ def summary_input(wildcards):
     if 'mask_file' in paths and config['IBDmix']['mask_stats']:
         ibd = paths['ibd_bed']
     return {
-        'exe': paths['source_root']+'summary.sh',
+        'exe': paths['source_root']+'src/summary.sh',
         'ibd': ibd
     }
 

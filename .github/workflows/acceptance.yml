@@ -1,0 +1,70 @@
+name: AcceptanceTests
+on: [push, pull_request]
+
+# TODO: generate_gt, generate_gt with tabs, population with mask, all with mask
+# all with no mask, inclusive end and stats
+jobs:
+  generate_gt:
+    name: Generate GT
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Chromosome 20, all populations
+        uses: ./.github/actions/acceptance_test
+        with:
+          type: gen_20
+
+  populations:
+    name: Population ibdmix
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Chromosome 20, different populations
+        uses: ./.github/actions/acceptance_test
+        with:
+          type: populations
+
+  all_mask:
+    name: All samples with mask
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: All populations with a mask
+        uses: ./.github/actions/acceptance_test
+        with:
+          type: all_mask
+
+  all_no_mask:
+    name: All samples without mask
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: All populations without a mask
+        uses: ./.github/actions/acceptance_test
+        with:
+          type: all_no_mask
+
+  extras:
+    name: Test extra options
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: GWD with stats and inclusive
+        uses: ./.github/actions/acceptance_test
+        with:
+          type: extra
