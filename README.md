@@ -1,3 +1,6 @@
+![](https://github.com/PrincetonUniversity/IBDmix/workflows/UnitTests/badge.svg)
+![](https://github.com/PrincetonUniversity/IBDmix/workflows/AcceptanceTests/badge.svg)
+
 # IBDmix
 > Detecting archaic sequence segregation in modern human genomes
 
