@@ -68,7 +68,7 @@ rule generate_gt:
     output:
         paths['genotype_file']
 
-    threads: 2
+    threads: 1
 
     shell:
         '{input.exe} '
@@ -152,6 +152,17 @@ rule ibd_mask_bed:
                 '-sorted ) '
             '<( zcat {input.ibd} ) '
             '| gzip > {output} '
+
+rule calculate_genetic_distance:
+    input:
+        gen_map=paths['genetic_map'],
+        ibd_file=paths['ibd_bed']
+
+    output:
+        paths['ibd_bed_gen_dist']
+
+    script:
+        'translate_distance.py'
 
 def summary_input(wildcards):
     ibd = paths['ibd_output']

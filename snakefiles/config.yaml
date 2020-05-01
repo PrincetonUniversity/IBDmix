@@ -8,7 +8,7 @@ paths:
     modern_vcf: "/tigress/AKEY/akey_vol2/wqfu/nobackup/1KGP/\
                  ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5a\
                  .20130502.genotypes.vcf.gz"
-    archaic_vcf: /tigress/limingli/data/old-Altai/gz/chr{chrom}.vcf.gz
+    archaic_vcf: "/tigress/limingli/data/old-Denisova/gz/chr{chrom}.vcf.gz"
     # if removed will use all samples
     sample_file: /tigress/tcomi/public_html/ibdmix_tests/cell_data/samples/{population}.txt
     # if removed will use all positions
@@ -22,6 +22,8 @@ paths:
                  {sample_name}_{population}_{chrom}.gz"
     ibd_bed: "{output_root}/ibd_bed/\
               {sample_name}_{population}_{chrom}.gz"
+    ibd_bed_gen_dist: "{output_root}/ibd_bed_gen_dist/\
+                       {sample_name}_{population}_{chrom}.gz"
     ibd_summary: "{output_root}/ibd_summary/\
                   {sample_name}_{population}_{chrom}_{LOD}_{length}.gz"
     combined_summary: "{output_root}/ibd_summary_combined/\
