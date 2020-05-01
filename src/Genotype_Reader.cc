@@ -64,7 +64,6 @@ void Genotype_Reader::process_line_buffer(bool selected){
     // the lod_scores array with appropriate values
     // All arrays must be initialized!
     archaic = buffer[sample_mapper.archaic_index*2];  //throughout, *2 to skip tabs
-    double allele_frequency = 0;
     selected &= get_frequency(allele_frequency);
     double modern_error = get_modern_error(allele_frequency);
 

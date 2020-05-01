@@ -68,7 +68,7 @@ int main(int argc, char *argv[]){
     std::ostream output(buf);
 
     // write header
-    output << "chrom\tpos\tref\talt\tarchaic\t0\t1\t2\n";
+    output << "chrom\tpos\tref\talt\tarchaic\tfreq_b\t0\t1\t2\n";
 
     Genotype_Reader reader(
             &genotype,
@@ -89,16 +89,21 @@ int main(int argc, char *argv[]){
                 reader.lod_cache[1] == 0 &&
                 reader.lod_cache[2] == 0)
             continue;
-        // any sites are inf
-        if( isinf(reader.lod_cache[0]) ||
-                isinf(reader.lod_cache[1]) ||
-                isinf(reader.lod_cache[2]))
-            continue;
+
+        // any sites are inf, replace with -100
+        if(isinf(reader.lod_cache[0]))
+            reader.lod_cache[0] = -100;
+        if(isinf(reader.lod_cache[1]))
+            reader.lod_cache[1] = -100;
+        if(isinf(reader.lod_cache[2]))
+            reader.lod_cache[2] = -100;
+
         output << reader.chromosome << '\t'
             << reader.position << '\t'
             << reader.ref << '\t'
             << reader.alt << '\t'
             << reader.archaic << '\t'
+            << reader.allele_frequency << '\t'
             << reader.lod_cache[0] << '\t'
             << reader.lod_cache[1] << '\t'
             << reader.lod_cache[2] << '\n';

@@ -38,7 +38,7 @@ class Genotype_Reader{
         std::string buffer;
         int minor_allele_cutoff;
         double archaic_error, modern_error_max, modern_error_proportion,
-               minesp;
+               minesp, allele_frequency = 0;
 
         std::vector<double> lod_scores, lod_cache;
         std::vector<unsigned char> recover_type;

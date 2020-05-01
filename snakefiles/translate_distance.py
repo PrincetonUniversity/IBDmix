@@ -1,5 +1,6 @@
 # translate physical distances in ibd_bed file to genetic distance
 import gzip
+import sys
 
 
 class gen_mapper:
@@ -51,10 +52,18 @@ class gen_mapper:
                  (self.bp_positions[ind] - self.bp_positions[ind + 1]))
                 + self.cm_positions[ind])
 
+if 'snakemake' in locals() or 'snakemake' in globals():
+    gen = snakemake.input[0]
+    ibd = snakemake.input[1]
+    output = snakemake.output[0]
+else:
+    gen = sys.argv[1]
+    ibd = sys.argv[2]
+    output = sys.argv[3]
 
-with open(snakemake.input[0], 'r') as gen_map, \
-        gzip.open(snakemake.input[1], 'rt') as ibd, \
-        gzip.open(snakemake.output[0], 'wt') as output:
+with open(gen, 'r') as gen_map, \
+        gzip.open(ibd, 'rt') as ibd, \
+        gzip.open(output, 'wt') as output:
     mapper = gen_mapper(gen_map)
     output.write(ibd.readline().strip() + '\tcm_dist\n')  # copy header
     for line in ibd:
