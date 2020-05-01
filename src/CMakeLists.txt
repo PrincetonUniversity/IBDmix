@@ -40,3 +40,8 @@ add_executable(ibdmix main.cc)
 target_include_directories(ibdmix PUBLIC ../include)
 target_link_libraries(ibdmix
     ibd_collection genotype_reader ibd_stack CLI11::CLI11)
+
+add_executable(gt_lods tabulate_lods.cc)
+target_include_directories(gt_lods PUBLIC ../include)
+target_link_libraries(gt_lods
+    genotype_reader CLI11::CLI11)

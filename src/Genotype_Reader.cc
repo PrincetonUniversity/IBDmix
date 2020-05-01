@@ -36,7 +36,9 @@ bool Genotype_Reader::update(){
         return false;
 
     iss >> token;  // ref
+    ref = token[0];
     iss >> token;  // alt
+    alt = token[0];
     line_filtering = 0;
     // selected indicates if the line should have its lod calculated
     // set to false if one of the following occurs:
@@ -61,7 +63,7 @@ void Genotype_Reader::process_line_buffer(bool selected){
     // from a genotype file.  Using sample_to_index mapping, fill in
     // the lod_scores array with appropriate values
     // All arrays must be initialized!
-    char archaic = buffer[sample_mapper.archaic_index*2];  //throughout, *2 to skip tabs
+    archaic = buffer[sample_mapper.archaic_index*2];  //throughout, *2 to skip tabs
     double allele_frequency = 0;
     selected &= get_frequency(allele_frequency);
     double modern_error = get_modern_error(allele_frequency);

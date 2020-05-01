@@ -53,6 +53,7 @@ class Genotype_Reader{
 
         int chromosome;
         unsigned long int position;
+        char archaic, ref, alt;
         unsigned char line_filtering;
         int num_samples() { return sample_mapper.size(); }
 
