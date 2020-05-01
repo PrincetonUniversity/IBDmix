@@ -35,6 +35,8 @@ int main(int argc, char *argv[]){
     double archaic_error = 0.01,
            modern_error_max = 0.0025,
            modern_error_prop = 2;
+    bool include_ninfs = false;
+    bool include_zeros = false;
     app.add_option("-m,--minor-allele-count-threshold", ma_threshold,
             "Threshold count for filtering minor alleles");
     app.add_option("-a,--archaic-error", archaic_error,
@@ -43,6 +45,12 @@ int main(int argc, char *argv[]){
             "Maximum allele error rate for modern samples");
     app.add_option("-c,--modern-error-proportion", modern_error_prop,
             "Ratio between allele error rate and minor allele frequency");
+    app.add_flag("--include-ninfs", include_ninfs,
+            "Include sites with -ninf as LOD scores.  Will translate to "
+            "-100 as the LOD score");
+    app.add_flag("--include-zeros", include_zeros,
+            "Include sites where all LODs are 0. Commonly occurs for sites in "
+            "masked regions.");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -85,18 +93,26 @@ int main(int argc, char *argv[]){
 
     while(reader.update()){
         // all sites are 0
-        if( reader.lod_cache[0] == 0 &&
+        if( !include_zeros && reader.lod_cache[0] == 0 &&
                 reader.lod_cache[1] == 0 &&
                 reader.lod_cache[2] == 0)
             continue;
 
         // any sites are inf, replace with -100
-        if(isinf(reader.lod_cache[0]))
+        if(isinf(reader.lod_cache[0])) {
             reader.lod_cache[0] = -100;
-        if(isinf(reader.lod_cache[1]))
+            if (!include_ninfs) continue;
+        }
+
+        if(isinf(reader.lod_cache[1])) {
             reader.lod_cache[1] = -100;
-        if(isinf(reader.lod_cache[2]))
+            if (!include_ninfs) continue;
+        }
+
+        if(isinf(reader.lod_cache[2])) {
             reader.lod_cache[2] = -100;
+            if (!include_ninfs) continue;
+        }
 
         output << reader.chromosome << '\t'
             << reader.position << '\t'
