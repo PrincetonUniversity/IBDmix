@@ -121,9 +121,6 @@ Additional columns include:
        2 in modern
 - __-w, --write-snps__
 Include positions with positive LOD scores as a comma-separated list.
-- __--write-lods__
-Include LOD scores of positive sites as a comma-separated list.  Same order as
-write-snps output (e.g. zip the two entries to get position/lod values).
 
 #### Summary.sh
 Once a run of `ibdmix` completes, it is informative to filter the results
