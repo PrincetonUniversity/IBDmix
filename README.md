@@ -20,13 +20,15 @@ IBDmix consists of 3 steps:
 
 ### Compilation
 The provided CMake lists will automatically build the executables, but requires
-version 3.13 or greater.  To use:
+version 3.13 or greater, git and the repository to be cloned.  To use:
 ```shell
+git clone https://github.com/PrincetonUniversity/IBDmix.git
+cd IBDmix
 pwd
 # /path/to/repo/IBDmix
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake ..
 cmake --build .
 ```
 The executables `generate_gt` and `ibdmix` will be left in `IBDmix/build/src`.

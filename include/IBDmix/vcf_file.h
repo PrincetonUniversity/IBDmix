@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <string.h>
+#include <stdexcept>
 
 typedef unsigned long int ulnt;
 
