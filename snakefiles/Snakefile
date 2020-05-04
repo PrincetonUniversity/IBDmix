@@ -135,7 +135,7 @@ rule ibd_mask_bed:
             'BEGIN{{OFS="\\t"}} '
             'NR==FNR{{'  # build chr,start,end to max and sum masked
                 'sum[$1 "." $2 "." $3] += $7; '
-                'if(max[$1 "." $2 "." $3] < $7){{ '
+                'if(max[$1 "." $2 "." $3] <= $7){{ '
                     'max[$1 "." $2 "." $3] = $7 }} '
                 'next; }} '
             'FNR==1{{ print $0, "total_masked", "largest_mask" ; next}} '

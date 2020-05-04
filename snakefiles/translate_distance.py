@@ -52,7 +52,7 @@ class gen_mapper:
                  (self.bp_positions[ind] - self.bp_positions[ind + 1]))
                 + self.cm_positions[ind])
 
-if 'snakemake' in locals() or 'snakemake' in globals():
+if 'snakemake' in globals():
     gen = snakemake.input[0]
     ibd = snakemake.input[1]
     output = snakemake.output[0]

@@ -15,6 +15,7 @@ paths:
     mask_file: "/tigress/AKEY/akey_vol1/home/luchenuw/data/FilterBed/\
                 FullVersionforAltai2013_1KGP3strict/\
                 Altai2013_1KGP3strict.mask.chr{chrom}.bed"
+    genetic_map: "/not/a/file"
     output_root: /tigress/tcomi/ibdmix_temp_with_sites
     sample_name: altai_1kg
     genotype_file: "{output_root}/genotype/{sample_name}_{chrom}.gz"
