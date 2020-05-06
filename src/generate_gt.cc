@@ -5,8 +5,7 @@
 
 #include "IBDmix/vcf_file.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     CLI::App app{"Produce genotype files from vcfs"};
 
     std::string archaic_file;
@@ -26,10 +25,9 @@ int main(int argc, char *argv[])
 
     std::ofstream of;
     std::streambuf * buf;
-    if (outfile == "-"){
+    if (outfile == "-") {
         buf = std::cout.rdbuf();
-    }
-    else{
+    } else {
         of.open(outfile);
         buf = of.rdbuf();
     }
@@ -48,26 +46,24 @@ int main(int argc, char *argv[])
     output << "\n";
 
     bool recheck = false;
-    //for each line in modern
-    while(modern.update()){
-
-        //short update with recheck for case when archaic position is > modern
-        while(recheck || archaic.update(true)){
+    // for each line in modern
+    while (modern.update()) {
+        // short update with recheck for case when archaic position is > modern
+        while (recheck || archaic.update(true)) {
             recheck = false;
 
-            //less than position, copy archaic and use modern blank line
-            if(archaic.position < modern.position)
-            {
+            // less than position, copy archaic and use modern blank line
+            if (archaic.position < modern.position) {
                 // skip lines with no informative archaic GT
                 bool nonzero = false;
-                for(int i = 0; i < 2*archaic.number_individuals; i+=2)
-                    if(archaic.genotypes[i] != '0'){
+                for (int i = 0; i < 2*archaic.number_individuals; i+=2)
+                    if (archaic.genotypes[i] != '0') {
                         nonzero = true;
                         break;
                     }
 
                 // found at least one informative archaic site
-                if (nonzero){
+                if (nonzero) {
                     // output archaic information and blank modern
                     output
                         << archaic.chromosome << '\t'
@@ -78,15 +74,12 @@ int main(int argc, char *argv[])
                     output << modern.blank_line;
                     output << "\n";
                 }
-            }
             // equal, have to check other conditions to write
-            else if(archaic.position == modern.position)
-            {
+            } else if (archaic.position == modern.position) {
                 // check alleles are matching
                 if (modern.isvalid && archaic.reference == modern.reference &&
                         (archaic.alternative == '.' ||
-                         archaic.alternative == modern.alternative))
-                {
+                         archaic.alternative == modern.alternative)) {
                     output
                         << archaic.chromosome << '\t'
                         << archaic.position << '\t'
@@ -98,17 +91,15 @@ int main(int argc, char *argv[])
                 }
                 // advance both to match legacy version
                 break;
-            }
             // greater than, advance modern but keep archaic where it is
-            else
-            {
+            } else {
                 recheck = true;
                 break;
             }
         }
     }
 
-    if(of.is_open())
+    if (of.is_open())
         of.close();
     archaic_vcf.close();
     modern_vcf.close();

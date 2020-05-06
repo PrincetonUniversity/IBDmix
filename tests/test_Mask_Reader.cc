@@ -6,7 +6,7 @@
 
 #include "IBDmix/Mask_Reader.h"
 
-TEST(MaskReader, CanTestInMask){
+TEST(MaskReader, CanTestInMask) {
     std::istringstream mask_input(
             "1 100 120\n"
             "1 130 140\n"
@@ -16,8 +16,7 @@ TEST(MaskReader, CanTestInMask){
             "2 130 140\n"
             "4 130 140\n"
             "8 130 140\n"
-            "chr8 130 140\n"
-            );
+            "chr8 130 140\n");
 
     Mask_Reader mask(&mask_input);
 
@@ -40,8 +39,8 @@ TEST(MaskReader, CanTestInMask){
     ASSERT_TRUE(mask.in_mask("1", 161));
 
     ASSERT_TRUE(mask.in_mask("1", 261));
-    
-    //skip chromosomes
+
+    // skip chromosomes
     ASSERT_FALSE(mask.in_mask("2", 130));
 
     ASSERT_FALSE(mask.in_mask("3", 130));

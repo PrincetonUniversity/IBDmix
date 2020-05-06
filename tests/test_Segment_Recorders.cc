@@ -7,7 +7,7 @@
 #include "IBDmix/IBD_Stack.h"
 #include "IBDmix/Genotype_Reader.h"
 
-TEST(CountRecorder, CanWriteHeader){
+TEST(CountRecorder, CanWriteHeader) {
     CountRecorder counter;
     std::ostringstream oss;
     counter.writeHeader(oss);
@@ -16,7 +16,7 @@ TEST(CountRecorder, CanWriteHeader){
             "maf_low\tmaf_high\trec_2_0\trec_0_2");
 }
 
-TEST(CountRecorder, CanRecord){
+TEST(CountRecorder, CanRecord) {
     CountRecorder counter;
     std::ostringstream oss;
     IBD_Pool pool(5);
@@ -100,7 +100,7 @@ TEST(CountRecorder, CanRecord){
             "\t0\t0\t0\t0\t0\t0\t0\t0");
 }
 
-TEST(SiteRecorder, CanWriteHeader){
+TEST(SiteRecorder, CanWriteHeader) {
     SiteRecorder counter;
     std::ostringstream oss;
     counter.writeHeader(oss);
@@ -108,7 +108,7 @@ TEST(SiteRecorder, CanWriteHeader){
             "\tSNPs");
 }
 
-TEST(SiteRecorder, CanRecord){
+TEST(SiteRecorder, CanRecord) {
     SiteRecorder counter;
     std::ostringstream oss;
     IBD_Pool pool(5);
@@ -153,7 +153,7 @@ TEST(SiteRecorder, CanRecord){
     oss.clear();
 }
 
-TEST(LODRecorder, CanWriteHeader){
+TEST(LODRecorder, CanWriteHeader) {
     LODRecorder counter;
     std::ostringstream oss;
     counter.writeHeader(oss);
@@ -161,7 +161,7 @@ TEST(LODRecorder, CanWriteHeader){
             "\tLODs");
 }
 
-TEST(LODRecorder, CanRecord){
+TEST(LODRecorder, CanRecord) {
     LODRecorder counter;
     std::ostringstream oss;
     IBD_Pool pool(5);

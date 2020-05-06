@@ -1,12 +1,14 @@
-#include <iostream>
-#include <fstream>
 #include <string.h>
 #include <stdio.h>
+
+#include <iostream>
+#include <fstream>
+
 #include <CLI/CLI.hpp>
 
 #include "IBDmix/Genotype_Reader.h"
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     CLI::App app{"Calculate population specific LOD scores for all sites"};
 
     std::string genotype_file;
@@ -58,18 +60,17 @@ int main(int argc, char *argv[]){
     genotype.open(genotype_file);
 
     std::ifstream sample;
-    if(sample_file != "")
+    if (sample_file != "")
         sample.open(sample_file);
     std::ifstream mask;
-    if(mask_file != "")
+    if (mask_file != "")
         mask.open(mask_file);
 
     std::ofstream of;
     std::streambuf * buf;
-    if (outfile == "-"){
+    if (outfile == "-") {
         buf = std::cout.rdbuf();
-    }
-    else{
+    } else {
         of.open(outfile);
         buf = of.rdbuf();
     }
@@ -88,28 +89,28 @@ int main(int argc, char *argv[]){
             ma_threshold);
 
     int num_samples = reader.initialize(sample, archaic);
-    if(sample.is_open())
+    if (sample.is_open())
         sample.close();
 
-    while(reader.update()){
+    while (reader.update()) {
         // all sites are 0
-        if( !include_zeros && reader.lod_cache[0] == 0 &&
+        if ( !include_zeros && reader.lod_cache[0] == 0 &&
                 reader.lod_cache[1] == 0 &&
                 reader.lod_cache[2] == 0)
             continue;
 
         // any sites are inf, replace with -100
-        if(isinf(reader.lod_cache[0])) {
+        if (isinf(reader.lod_cache[0])) {
             reader.lod_cache[0] = -100;
             if (!include_ninfs) continue;
         }
 
-        if(isinf(reader.lod_cache[1])) {
+        if (isinf(reader.lod_cache[1])) {
             reader.lod_cache[1] = -100;
             if (!include_ninfs) continue;
         }
 
-        if(isinf(reader.lod_cache[2])) {
+        if (isinf(reader.lod_cache[2])) {
             reader.lod_cache[2] = -100;
             if (!include_ninfs) continue;
         }
@@ -126,8 +127,8 @@ int main(int argc, char *argv[]){
     }
 
     genotype.close();
-    if(mask.is_open())
+    if (mask.is_open())
         mask.close();
-    if(of.is_open())
+    if (of.is_open())
         of.close();
 }

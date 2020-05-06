@@ -1,15 +1,8 @@
-#pragma once
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <math.h>
-#include <iostream>
-#include <vector>
+#ifndef INCLUDE_IBDMIX_GENOTYPE_READER_H_
+#define INCLUDE_IBDMIX_GENOTYPE_READER_H_
+
 #include <string>
-#include <sstream>
-#include <algorithm>
-#include <iterator>
+#include <vector>
 
 #include "IBDmix/Mask_Reader.h"
 #include "IBDmix/Sample_Mapper.h"
@@ -22,49 +15,51 @@ const unsigned char RECOVER_0_2 = 1 << 4;
 
 
 class Genotype_Reader{
-    private:
-        std::istream * genotype;
-        std::istringstream iss;
-        std::string token;
-        Mask_Reader mask;
-        Sample_Mapper sample_mapper;
+ private:
+    std::istream * genotype;
+    std::istringstream iss;
+    std::string token;
+    Mask_Reader mask;
+    Sample_Mapper sample_mapper;
 
-    public:
-        Genotype_Reader(std::istream * genotype, std::istream *mask=nullptr,
-                double archaic_error=0.01, double modern_error_max=0.002,
-                double modern_error_proportion=2, double minesp=1e-200,
-                int minor_allele_cutoff=1);
+ public:
+    Genotype_Reader(std::istream * genotype, std::istream *mask = nullptr,
+            double archaic_error = 0.01, double modern_error_max = 0.002,
+            double modern_error_proportion = 2, double minesp = 1e-200,
+            int minor_allele_cutoff = 1);
 
-        std::string buffer;
-        int minor_allele_cutoff;
-        double archaic_error, modern_error_max, modern_error_proportion,
-               minesp, allele_frequency = 0;
+    std::string buffer;
+    double archaic_error, modern_error_max, modern_error_proportion,
+           minesp, allele_frequency = 0;
+    int minor_allele_cutoff;
 
-        std::vector<double> lod_scores, lod_cache;
-        std::vector<unsigned char> recover_type;
+    std::vector<double> lod_scores, lod_cache;
+    std::vector<unsigned char> recover_type;
 
-        void process_line_buffer(bool selected);
-        double get_modern_error(double frequency);
-        bool get_frequency(double &frequency);
+    void process_line_buffer(bool selected);
+    bool find_frequency();
+    double get_modern_error();
 
-        void update_lod_cache(char archaic, double freq_b, double modern_error,
-                bool selected=true);
-        double calculate_lod(char modern);
+    void update_lod_cache(char archaic, double freq_b, double modern_error,
+            bool selected = true);
+    double calculate_lod(char modern);
 
-        int chromosome;
-        unsigned long int position;
-        char archaic, ref, alt;
-        unsigned char line_filtering;
-        int num_samples() { return sample_mapper.size(); }
+    int chromosome;
+    uint64_t position;
+    char archaic, ref, alt;
+    unsigned char line_filtering;
+    int num_samples() { return sample_mapper.size(); }
 
-        int initialize(std::istream &samples, std::string archaic="");
-        const std::vector<std::string>& get_samples();
-        bool update(void);
+    int initialize(std::istream &samples, std::string archaic = "");
+    const std::vector<std::string>& get_samples() const;
+    bool update(void);
 };
-// TODO make a LOD Calculator class, needs mapper
-// TODO handle string chromosomes, deal with sorting on mask
+// TODO(troycomi) make a LOD Calculator class, needs mapper
+// TODO(troycomi) handle string chromosomes, deal with sorting on mask
 // std::istringstream iss(buffer);
 // std::copy(std::istream_iterator<std::string>(iss),
 //         std::istream_iterator<std::string>(),
 //         std::back_inserter(sample_list));
 // result = sample_list.size() - 1;  // remove 1 for archaic
+
+#endif  // INCLUDE_IBDMIX_GENOTYPE_READER_H_

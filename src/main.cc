@@ -1,14 +1,16 @@
-#include <iostream>
-#include <fstream>
 #include <string.h>
 #include <stdio.h>
+
+#include <iostream>
+#include <fstream>
+
 #include <CLI/CLI.hpp>
 
 #include "IBDmix/IBD_Collection.h"
 #include "IBDmix/Genotype_Reader.h"
 #include "IBDmix/IBD_Stack.h"
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     CLI::App app{"Find probable IBD regions"};
 
     std::string genotype_file;
@@ -69,10 +71,10 @@ int main(int argc, char *argv[]){
     genotype.open(genotype_file);
 
     std::ifstream sample;
-    if(sample_file != "")
+    if (sample_file != "")
         sample.open(sample_file);
     std::ifstream mask;
-    if(mask_file != "")
+    if (mask_file != "")
         mask.open(mask_file);
 
     // if output of end should be start, end) [exclusive end point]
@@ -81,10 +83,9 @@ int main(int argc, char *argv[]){
 
     std::ofstream of;
     std::streambuf * buf;
-    if (outfile == "-"){
+    if (outfile == "-") {
         buf = std::cout.rdbuf();
-    }
-    else{
+    } else {
         of.open(outfile);
         buf = of.rdbuf();
     }
@@ -103,7 +104,7 @@ int main(int argc, char *argv[]){
             ma_threshold);
 
     int num_samples = reader.initialize(sample, archaic);
-    if(sample.is_open())
+    if (sample.is_open())
         sample.close();
 
     IBD_Collection ibds(LOD_threshold, exclusive_end);
@@ -111,22 +112,22 @@ int main(int argc, char *argv[]){
     ibds.initialize(reader);
     if (more_stats)
         ibds.add_recorder(IBD_Collection::Recorder::counts);
-    if(include_sites)
+    if (include_sites)
         ibds.add_recorder(IBD_Collection::Recorder::sites);
-    if(include_lods)
+    if (include_lods)
         ibds.add_recorder(IBD_Collection::Recorder::lods);
 
     ibds.writeHeader(output);
     output << '\n';
 
-    while(reader.update())
+    while (reader.update())
         ibds.update(reader, output);
 
     ibds.purge(output);
 
     genotype.close();
-    if(mask.is_open())
+    if (mask.is_open())
         mask.close();
-    if(of.is_open())
+    if (of.is_open())
         of.close();
 }

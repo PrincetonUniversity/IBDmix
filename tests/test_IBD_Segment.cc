@@ -5,16 +5,17 @@
 #include "IBDmix/IBD_Segment.h"
 #include "IBDmix/Segment_Recorders.h"
 #include "IBDmix/IBD_Stack.h"
+#include "IBDmix/Genotype_Reader.h"
 
 unsigned char none = '\0';
 
-TEST(IBDSegment, CanConstruct){
+TEST(IBDSegment, CanConstruct) {
     IBD_Pool pool(5);
     IBD_Segment s1("test", 0, &pool);
     ASSERT_EQ(s1.size(), 0);
 }
 
-TEST(IBDSegment, CanAddBasicLOD){
+TEST(IBDSegment, CanAddBasicLOD) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool);
@@ -36,7 +37,7 @@ TEST(IBDSegment, CanAddBasicLOD){
     seg.add_lod(1, 6, 0.2, none, output);
     ASSERT_EQ(seg.size(), 5);
 
-    //add new maxes (equal, then more)
+    // add new maxes (equal, then more)
     seg.add_lod(1, 7, 0.1, none, output);
     ASSERT_EQ(seg.size(), 2);
 
@@ -46,7 +47,7 @@ TEST(IBDSegment, CanAddBasicLOD){
     ASSERT_EQ(seg.size(), 2);
 }
 
-TEST(IBDSegment, CanAddLODOutput){
+TEST(IBDSegment, CanAddLODOutput) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool);
@@ -67,7 +68,7 @@ TEST(IBDSegment, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 5);
 
-    //have start = end
+    // have start = end
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -3, none, output);
@@ -75,7 +76,7 @@ TEST(IBDSegment, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 5);
 
-    //generate multiple outputs at once
+    // generate multiple outputs at once
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -1, none, output);
@@ -88,7 +89,7 @@ TEST(IBDSegment, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 10);
 
-    //split last into two positions
+    // split last into two positions
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -1, none, output);
@@ -102,7 +103,7 @@ TEST(IBDSegment, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 10);
 
-    //trigger reversal twice
+    // trigger reversal twice
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -1, none, output);
@@ -124,7 +125,7 @@ TEST(IBDSegment, CanAddLODOutput){
     ASSERT_EQ(pool.size(), 10);
 }
 
-TEST(IBDSegment, CanPurge){
+TEST(IBDSegment, CanPurge) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool);
@@ -147,7 +148,7 @@ TEST(IBDSegment, CanPurge){
             "test\t2\t9\t9\t0.5\n");
 }
 
-TEST(IBDSegment, CanPurgeInclusive){
+TEST(IBDSegment, CanPurgeInclusive) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool, false);
@@ -170,14 +171,13 @@ TEST(IBDSegment, CanPurgeInclusive){
             "test\t2\t9\t9\t0.5\n");
 }
 
-TEST(IBDSegment, CanPrint){
+TEST(IBDSegment, CanPrint) {
     IBD_Pool pool(5);
     std::ostringstream output, print_out;
     IBD_Segment seg("test", 0, &pool);
     print_out << seg;
     ASSERT_STREQ(print_out.str().c_str(),
-                    "--- test ---\n"
-                    );
+                    "--- test ---\n");
     print_out.str("");
     print_out.clear();
 
@@ -185,8 +185,7 @@ TEST(IBDSegment, CanPrint){
     print_out << seg;
     ASSERT_STREQ(print_out.str().c_str(),
                     "--- test ---\n"
-                    "1\t2\t2 <- top <- start <- end\n"
-                    );
+                    "1\t2\t2 <- top <- start <- end\n");
     print_out.clear();
     print_out.str("");
 
@@ -195,8 +194,7 @@ TEST(IBDSegment, CanPrint){
     ASSERT_STREQ(print_out.str().c_str(),
                     "--- test ---\n"
                     "2\t-1\t1 <- top\n"
-                    "1\t2\t2 <- start <- end\n"
-                    );
+                    "1\t2\t2 <- start <- end\n");
     print_out.clear();
     print_out.str("");
 
@@ -212,8 +210,7 @@ TEST(IBDSegment, CanPrint){
                     "4\t-1\t0.5\n"
                     "3\t0.5\t1.5\n"
                     "2\t-1\t1\n"
-                    "1\t2\t2 <- start <- end\n"
-                    );
+                    "1\t2\t2 <- start <- end\n");
     print_out.clear();
     print_out.str("");
 
@@ -225,11 +222,10 @@ TEST(IBDSegment, CanPrint){
                     "--- test ---\n"
                     "8\t-1\t1.1 <- top\n"
                     "7\t2.1\t2.1 <- end\n"
-                    "1\t2\t2 <- start\n"
-                    );
+                    "1\t2\t2 <- start\n");
 }
 
-TEST(IBDSegment, CanRecordStats){
+TEST(IBDSegment, CanRecordStats) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool, true);
@@ -246,9 +242,9 @@ TEST(IBDSegment, CanRecordStats){
     ASSERT_EQ('\0', output.str().c_str()[0]);
     seg.purge(output);
     ASSERT_EQ(output.str(),
-            // starting at last 9, sites positve_lod both in_mask maf_low maf_high 2_0 0_2
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\n"
-            );
+            // starting at last 9, sites positve_lod both
+            // in_mask maf_low maf_high 2_0 0_2
+            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\n");
     output.str("");
     output.clear();
 
@@ -269,7 +265,7 @@ TEST(IBDSegment, CanRecordStats){
             "test\t2\t1\t50\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //have start = end
+    // have start = end
     output.str("");
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
@@ -277,7 +273,7 @@ TEST(IBDSegment, CanRecordStats){
             "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //generate multiple outputs at once
+    // generate multiple outputs at once
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -291,7 +287,7 @@ TEST(IBDSegment, CanRecordStats){
             "test\t2\t5\t6\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //split into more positions
+    // split into more positions
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -312,7 +308,7 @@ TEST(IBDSegment, CanRecordStats){
             "test\t2\t9\t13\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //trigger reversal twice
+    // trigger reversal twice
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -332,7 +328,7 @@ TEST(IBDSegment, CanRecordStats){
             "test\t2\t9\t10\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //one output with a late max
+    // one output with a late max
     output.str("");
     seg.add_lod(2, 1, 5, IN_MASK, output);
     seg.add_lod(2, 2, -1, MAF_LOW, output);
@@ -348,7 +344,7 @@ TEST(IBDSegment, CanRecordStats){
     ASSERT_EQ(seg.size(), 0);
 }
 
-TEST(IBDSegment, CanRecordStatsInclusive){
+TEST(IBDSegment, CanRecordStatsInclusive) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool, false);
@@ -365,9 +361,7 @@ TEST(IBDSegment, CanRecordStatsInclusive){
     ASSERT_EQ('\0', output.str().c_str()[0]);
     seg.purge(output);
     ASSERT_EQ(output.str(),
-            // starting at last 9, sites both in_mask maf_low maf_high 2_0 0_2
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\n"
-            );
+            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\n");
     output.str("");
     output.clear();
 
@@ -387,7 +381,7 @@ TEST(IBDSegment, CanRecordStatsInclusive){
             "test\t2\t1\t4\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //have start = end
+    // have start = end
     output.str("");
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
@@ -395,7 +389,7 @@ TEST(IBDSegment, CanRecordStatsInclusive){
             "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //generate multiple outputs at once
+    // generate multiple outputs at once
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -409,7 +403,7 @@ TEST(IBDSegment, CanRecordStatsInclusive){
             "test\t2\t5\t5\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //split into more positions
+    // split into more positions
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -430,7 +424,7 @@ TEST(IBDSegment, CanRecordStatsInclusive){
             "test\t2\t9\t12\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //trigger reversal twice
+    // trigger reversal twice
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -451,7 +445,7 @@ TEST(IBDSegment, CanRecordStatsInclusive){
     ASSERT_EQ(seg.size(), 0);
 }
 
-TEST(IBDSegmentSites, CanAddLODOutput){
+TEST(IBDSegmentSites, CanAddLODOutput) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool);
@@ -473,7 +467,7 @@ TEST(IBDSegmentSites, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 5);
 
-    //have start = end
+    // have start = end
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -3, none, output);
@@ -481,7 +475,7 @@ TEST(IBDSegmentSites, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 5);
 
-    //generate multiple outputs at once
+    // generate multiple outputs at once
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -1, none, output);
@@ -496,7 +490,7 @@ TEST(IBDSegmentSites, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 10);
 
-    //split last into two positions
+    // split last into two positions
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -1, none, output);
@@ -512,7 +506,7 @@ TEST(IBDSegmentSites, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 10);
 
-    //trigger reversal twice
+    // trigger reversal twice
     output.str("");
     seg.add_lod(2, 1, 2, none, output);
     seg.add_lod(2, 2, -1, none, output);
@@ -535,7 +529,7 @@ TEST(IBDSegmentSites, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
     ASSERT_EQ(pool.size(), 20);
 
-    //one output with a late max
+    // one output with a late max
     output.str("");
     seg.add_lod(2, 1, 5, IN_MASK, output);
     seg.add_lod(2, 2, -1, MAF_LOW, output);
@@ -553,7 +547,7 @@ TEST(IBDSegmentSites, CanAddLODOutput){
     ASSERT_EQ(seg.size(), 0);
 }
 
-TEST(IBDSegmentSites, CanPurge){
+TEST(IBDSegmentSites, CanPurge) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool);
@@ -580,7 +574,7 @@ TEST(IBDSegmentSites, CanPurge){
     // though the last segment goes to 11, 10 and 11 have lod == 0
 }
 
-TEST(IBDSegmentSites, CanPurgeInclusive){
+TEST(IBDSegmentSites, CanPurgeInclusive) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool, false);
@@ -604,7 +598,7 @@ TEST(IBDSegmentSites, CanPurgeInclusive){
             "test\t2\t9\t9\t0.5\t9\n");
 }
 
-TEST(IBDSegmentSites, CanRecordStats){
+TEST(IBDSegmentSites, CanRecordStats) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool);
@@ -622,9 +616,7 @@ TEST(IBDSegmentSites, CanRecordStats){
     ASSERT_EQ('\0', output.str().c_str()[0]);
     seg.purge(output);
     ASSERT_EQ(output.str(),
-            // starting at last 9, sites both in_mask maf_low maf_high 2_0 0_2
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n"
-            );
+            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n");
     output.str("");
     output.clear();
 
@@ -645,7 +637,7 @@ TEST(IBDSegmentSites, CanRecordStats){
             "test\t2\t1\t50\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\t1,2,3,4\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //have start = end
+    // have start = end
     output.str("");
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
@@ -653,7 +645,7 @@ TEST(IBDSegmentSites, CanRecordStats){
             "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t1\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //generate multiple outputs at once
+    // generate multiple outputs at once
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -667,7 +659,7 @@ TEST(IBDSegmentSites, CanRecordStats){
             "test\t2\t5\t6\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\t5\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //split into more positions
+    // split into more positions
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -688,7 +680,7 @@ TEST(IBDSegmentSites, CanRecordStats){
             "test\t2\t9\t13\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\t9,10,11,12\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //trigger reversal twice
+    // trigger reversal twice
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -709,7 +701,7 @@ TEST(IBDSegmentSites, CanRecordStats){
     ASSERT_EQ(seg.size(), 0);
 }
 
-TEST(IBDSegmentSites, CanRecordStatsInclusive){
+TEST(IBDSegmentSites, CanRecordStatsInclusive) {
     IBD_Pool pool(5);
     std::ostringstream output;
     IBD_Segment seg("test", 0, &pool, false);
@@ -727,9 +719,7 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive){
     ASSERT_EQ('\0', output.str().c_str()[0]);
     seg.purge(output);
     ASSERT_EQ(output.str(),
-            // starting at last 9, sites both in_mask maf_low maf_high 2_0 0_2
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n"
-            );
+            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n");
     output.str("");
     output.clear();
 
@@ -749,7 +739,7 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive){
             "test\t2\t1\t4\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\t1,2,3,4\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //have start = end
+    // have start = end
     output.str("");
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
@@ -757,7 +747,7 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive){
             "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t1\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //generate multiple outputs at once
+    // generate multiple outputs at once
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -771,7 +761,7 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive){
             "test\t2\t5\t5\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\t5\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //split into more positions
+    // split into more positions
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
@@ -792,7 +782,7 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive){
             "test\t2\t9\t12\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\t9,10,11,12\n");
     ASSERT_EQ(seg.size(), 0);
 
-    //trigger reversal twice
+    // trigger reversal twice
     output.str("");
     seg.add_lod(2, 1, 2, IN_MASK, output);
     seg.add_lod(2, 2, -1, IN_MASK, output);
