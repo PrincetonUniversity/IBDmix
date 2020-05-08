@@ -8,23 +8,26 @@ paths:
     modern_vcf: "/tigress/AKEY/akey_vol2/wqfu/nobackup/1KGP/\
                  ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5a\
                  .20130502.genotypes.vcf.gz"
-    archaic_vcf: "/tigress/limingli/data/old-Denisova/gz/chr{chrom}.vcf.gz"
+    archaic_vcf: "/tigress/limingli/data/old-Altai/gz/chr{chrom}.vcf.gz"
     # if removed will use all samples
-    sample_file: /tigress/tcomi/public_html/ibdmix_tests/cell_data/samples/{population}.txt
+    sample_file: "/tigress/tcomi/public_html/ibdmix_tests/cell_data\
+                  /samples/{population}.txt"
     # if removed will use all positions
     mask_file: "/tigress/AKEY/akey_vol1/home/luchenuw/data/FilterBed/\
                 FullVersionforAltai2013_1KGP3strict/\
                 Altai2013_1KGP3strict.mask.chr{chrom}.bed"
-    genetic_map: "/not/a/file"
-    output_root: /tigress/tcomi/ibdmix_temp_with_sites
+    genetic_map: "/tigress/tcomi/hg19/{map}/\
+                  {map}_recombination_map_hapmap_format_hg19_chr_{chrom}.txt"
+    hap_map: "/tigress/tcomi/hapmap/genetic_map_GRCh37_chr{chrom}.txt"
+    output_root: /tigress/tcomi/ibdmix_altai_2013_all_maps
     sample_name: altai_1kg
     genotype_file: "{output_root}/genotype/{sample_name}_{chrom}.gz"
     ibd_output: "{output_root}/ibd_raw/\
                  {sample_name}_{population}_{chrom}.gz"
     ibd_bed: "{output_root}/ibd_bed/\
               {sample_name}_{population}_{chrom}.gz"
-    ibd_bed_gen_dist: "{output_root}/ibd_bed_gen_dist/\
-                       {sample_name}_{population}_{chrom}.gz"
+    ibd_gen_dist: "{output_root}/gen_dist/{population}/\
+                       map_{map}_{sample_name}_{population}_{chrom}.gz"
     ibd_summary: "{output_root}/ibd_summary/\
                   {sample_name}_{population}_{chrom}_{LOD}_{length}.gz"
     combined_summary: "{output_root}/ibd_summary_combined/\

@@ -32,6 +32,10 @@ def all_input(wildcards):
     if '{population}' in path:
         params['population'] = populations
 
+    return expand(paths['ibd_gen_dist'],
+            population=populations,
+            map=populations + ['hapmap'],
+            chrom=chromosomes)
     return expand(path, **params)
 
 rule all:
@@ -153,13 +157,23 @@ rule ibd_mask_bed:
             '<( zcat {input.ibd} ) '
             '| gzip > {output} '
 
+def genetic_distance_input(wildcards):
+    map_path = paths['genetic_map'].format(**wildcards)
+    if wildcards['map'] == 'hapmap':
+        map_path = paths['hap_map'].format(**wildcards)
+    return {
+            'gen_map': map_path,
+            'ibd_file': paths['ibd_output'].format(**wildcards)
+            }
+
 rule calculate_genetic_distance:
     input:
-        gen_map=paths['genetic_map'],
-        ibd_file=paths['ibd_bed']
+        unpack(genetic_distance_input)
 
     output:
-        paths['ibd_bed_gen_dist']
+        paths['ibd_gen_dist']
+
+    priority: 1
 
     script:
         'translate_distance.py'
