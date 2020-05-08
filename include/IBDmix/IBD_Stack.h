@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_IBD_STACK_H_
-#define INCLUDE_IBDMIX_IBD_STACK_H_
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -46,5 +45,3 @@ class IBD_Pool {
     void reclaim_between(IBD_Node *start, IBD_Node *end);
     void reclaim_all(IBD_Node **top);
 };
-
-#endif  // INCLUDE_IBDMIX_IBD_STACK_H_

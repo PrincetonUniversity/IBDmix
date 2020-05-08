@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_MASK_READER_H_
-#define INCLUDE_IBDMIX_MASK_READER_H_
+#pragma once
 
 #include <iostream>
 #include <sstream>
@@ -17,5 +16,3 @@ class Mask_Reader{
     explicit Mask_Reader(std::istream *mask) : mask(mask) {readline();}
     bool in_mask(const std::string &chrom, uint64_t position);
 };
-
-#endif  // INCLUDE_IBDMIX_MASK_READER_H_

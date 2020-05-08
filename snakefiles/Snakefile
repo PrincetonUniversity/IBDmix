@@ -54,13 +54,13 @@ rule make_executables:
 
     shell:
         '''
-        mkdir -p {paths[source_root]}build
-        cd {paths[source_root]}build
+        mkdir -p {paths[source_root]}snake_build
+        cd {paths[source_root]}snake_build
         cmake .. -DCMAKE_BUILD_TYPE=Release
         cmake --build .
         for f in {params.targets}; do mv $f {paths[exe_root]} ; done
         cd ..
-        rm -rf build
+        rm -rf snake_build
         '''
 
 rule generate_gt:

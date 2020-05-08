@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_GENOTYPE_READER_H_
-#define INCLUDE_IBDMIX_GENOTYPE_READER_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -61,5 +60,3 @@ class Genotype_Reader{
 //         std::istream_iterator<std::string>(),
 //         std::back_inserter(sample_list));
 // result = sample_list.size() - 1;  // remove 1 for archaic
-
-#endif  // INCLUDE_IBDMIX_GENOTYPE_READER_H_

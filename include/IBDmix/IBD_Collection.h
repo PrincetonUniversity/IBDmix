@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_IBD_COLLECTION_H_
-#define INCLUDE_IBDMIX_IBD_COLLECTION_H_
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -25,5 +24,3 @@ class IBD_Collection{
     void add_recorder(IBD_Collection::Recorder type);
     void writeHeader(std::ostream &strm) const;
 };
-
-#endif  // INCLUDE_IBDMIX_IBD_COLLECTION_H_

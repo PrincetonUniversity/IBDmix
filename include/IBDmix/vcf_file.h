@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_VCF_FILE_H_
-#define INCLUDE_IBDMIX_VCF_FILE_H_
+#pragma once
 
 #include <iostream>
 #include <sstream>
@@ -29,5 +28,3 @@ class VCF_File {
     bool update(bool skip_non_informative = false);
     bool read_line(bool skip_non_informative = false);
 };
-
-#endif  // INCLUDE_IBDMIX_VCF_FILE_H_

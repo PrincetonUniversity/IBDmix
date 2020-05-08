@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_SAMPLE_MAPPER_H_
-#define INCLUDE_IBDMIX_SAMPLE_MAPPER_H_
+#pragma once
 
 #include <vector>
 #include <algorithm>
@@ -23,5 +22,3 @@ class Sample_Mapper{
     void map(std::vector<std::string> requested_samples);
     int size() { return samples.size(); }
 };
-
-#endif  // INCLUDE_IBDMIX_SAMPLE_MAPPER_H_

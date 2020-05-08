@@ -9,7 +9,7 @@ class gen_mapper:
         self.bp_positions = []
         self.cm_positions = []
         self.finished = False
-        gen_map.readline()  # remove header
+        self.reader.readline()  # remove header
         self.read_interval()
         self.read_interval()
 
@@ -30,7 +30,7 @@ class gen_mapper:
         if position < self.bp_positions[0]:
             return self.cm_positions[0]
 
-        while position > self.bp_positions[-1]:
+        while position >= self.bp_positions[-1]:
             if not self.finished:
                 # read new line
                 self.read_interval()
@@ -46,29 +46,34 @@ class gen_mapper:
             el2 = self.bp_positions[ind + 1]
             if el <= position < el2:
                 break
+        result = ((position - self.bp_positions[ind]) *
+                  ((self.cm_positions[ind] - self.cm_positions[ind + 1]) /
+                   (self.bp_positions[ind] - self.bp_positions[ind + 1]))
+                  + self.cm_positions[ind])
+        return result
 
-        return ((position - self.bp_positions[ind]) *
-                ((self.cm_positions[ind] - self.cm_positions[ind + 1]) /
-                 (self.bp_positions[ind] - self.bp_positions[ind + 1]))
-                + self.cm_positions[ind])
+def main():
+    if 'snakemake' in globals():
+        gen = snakemake.input[0]
+        ibd = snakemake.input[1]
+        output = snakemake.output[0]
+    else:
+        gen = sys.argv[1]
+        ibd = sys.argv[2]
+        output = sys.argv[3]
 
-if 'snakemake' in globals():
-    gen = snakemake.input[0]
-    ibd = snakemake.input[1]
-    output = snakemake.output[0]
-else:
-    gen = sys.argv[1]
-    ibd = sys.argv[2]
-    output = sys.argv[3]
+    with open(gen, 'r') as gen_map, \
+            gzip.open(ibd, 'rt') as ibd, \
+            gzip.open(output, 'wt') as output:
+        mapper = gen_mapper(gen_map)
+        output.write(ibd.readline().strip() + '\tcm_dist\n')  # copy header
+        for line in ibd:
+            toks = line.split()
+            start = int(toks[2])
+            end = int(toks[3])
+            cm_dist = mapper.predict(end) - mapper.predict(start)
+            output.write(line.strip() + f'\t{cm_dist:0.7f}\n')
 
-with open(gen, 'r') as gen_map, \
-        gzip.open(ibd, 'rt') as ibd, \
-        gzip.open(output, 'wt') as output:
-    mapper = gen_mapper(gen_map)
-    output.write(ibd.readline().strip() + '\tcm_dist\n')  # copy header
-    for line in ibd:
-        toks = line.split()
-        start = int(toks[2])
-        end = int(toks[3])
-        cm_dist = mapper.predict(end) - mapper.predict(start)
-        output.write(line.strip() + f'\t{cm_dist:0.7f}\n')
+
+if __name__ == '__main__':
+    main()

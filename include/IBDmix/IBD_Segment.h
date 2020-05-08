@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_IBD_SEGMENT_H_
-#define INCLUDE_IBDMIX_IBD_SEGMENT_H_
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -39,5 +38,3 @@ class IBD_Segment{
 };
 
 std::ostream& operator<<(std::ostream &strm, const IBD_Segment &segment);
-
-#endif  // INCLUDE_IBDMIX_IBD_SEGMENT_H_

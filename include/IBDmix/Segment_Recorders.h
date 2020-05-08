@@ -1,5 +1,4 @@
-#ifndef INCLUDE_IBDMIX_SEGMENT_RECORDERS_H_
-#define INCLUDE_IBDMIX_SEGMENT_RECORDERS_H_
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -46,5 +45,3 @@ class LODRecorder : public Recorder{
     void record(IBD_Node *node);
     void report(std::ostream &output) const;
 };
-
-#endif  // INCLUDE_IBDMIX_SEGMENT_RECORDERS_H_
