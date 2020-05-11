@@ -12,7 +12,7 @@ TEST(CountRecorder, CanWriteHeader) {
     std::ostringstream oss;
     counter.writeHeader(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\tsites\tpositive_lods\tmask_and_maf\tin_mask\t"
+            "\tsites\tpositive_lods\tnegative_lods\tmask_and_maf\tin_mask\t"
             "maf_low\tmaf_high\trec_2_0\trec_0_2");
 }
 
@@ -25,14 +25,14 @@ TEST(CountRecorder, CanRecord) {
     counter.initializeSegment();
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t0\t0\t0\t0\t0\t0\t0\t0");
+            "\t0\t0\t0\t0\t0\t0\t0\t0\t0");
     oss.str("");
     oss.clear();
 
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t1\t0\t0\t0\t0\t0\t0\t0");
+            "\t1\t0\t0\t0\t0\t0\t0\t0\t0");
     oss.str("");
     oss.clear();
 
@@ -41,7 +41,7 @@ TEST(CountRecorder, CanRecord) {
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t2\t1\t0\t1\t0\t0\t1\t0");
+            "\t2\t1\t0\t0\t1\t0\t0\t1\t0");
     oss.str("");
     oss.clear();
 
@@ -50,7 +50,7 @@ TEST(CountRecorder, CanRecord) {
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t3\t1\t0\t1\t1\t0\t1\t1");
+            "\t3\t1\t1\t0\t1\t1\t0\t1\t1");
     oss.str("");
     oss.clear();
 
@@ -58,7 +58,7 @@ TEST(CountRecorder, CanRecord) {
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t4\t1\t0\t1\t1\t1\t1\t1");
+            "\t4\t1\t2\t0\t1\t1\t1\t1\t1");
     oss.str("");
     oss.clear();
 
@@ -66,7 +66,7 @@ TEST(CountRecorder, CanRecord) {
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t5\t1\t0\t1\t2\t2\t1\t1");
+            "\t5\t1\t3\t0\t1\t2\t2\t1\t1");
     oss.str("");
     oss.clear();
 
@@ -74,7 +74,7 @@ TEST(CountRecorder, CanRecord) {
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t6\t1\t1\t1\t2\t2\t1\t1");
+            "\t6\t1\t4\t1\t1\t2\t2\t1\t1");
     oss.str("");
     oss.clear();
 
@@ -82,7 +82,7 @@ TEST(CountRecorder, CanRecord) {
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t7\t1\t2\t1\t2\t2\t1\t1");
+            "\t7\t1\t5\t2\t1\t2\t2\t1\t1");
     oss.str("");
     oss.clear();
 
@@ -90,14 +90,14 @@ TEST(CountRecorder, CanRecord) {
     counter.record(node);
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t8\t1\t3\t1\t2\t2\t1\t1");
+            "\t8\t1\t6\t3\t1\t2\t2\t1\t1");
     oss.str("");
     oss.clear();
 
     counter.initializeSegment();
     counter.report(oss);
     ASSERT_STREQ(oss.str().c_str(),
-            "\t0\t0\t0\t0\t0\t0\t0\t0");
+            "\t0\t0\t0\t0\t0\t0\t0\t0\t0");
 }
 
 TEST(SiteRecorder, CanWriteHeader) {

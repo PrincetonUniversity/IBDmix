@@ -105,6 +105,7 @@ A switch to report additional region-level statistics.
 Additional columns include:
   - sites: total number of sites in genotype file in region
   - positive_lods: number of sites with positive LOD scores in the region
+  - negative_lods: number of sites with negative LOD scores in the region
   - mask\_and\_maf: sites which are both in the masked region
        and fail MAF cutoff
   - in\_mask: sites in the mask but pass MAF

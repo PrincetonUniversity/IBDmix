@@ -6,12 +6,12 @@
 
 void CountRecorder::writeHeader(std::ostream &output) const {
     output <<
-        "\tsites\tpositive_lods\tmask_and_maf\tin_mask\t"
+        "\tsites\tpositive_lods\tnegative_lods\tmask_and_maf\tin_mask\t"
         "maf_low\tmaf_high\trec_2_0\trec_0_2";
 }
 
 void CountRecorder::initializeSegment() {
-    positive_lod = both = sites = in_mask =
+    positive_lod = negative_lod = both = sites = in_mask =
         maf_low = maf_high = rec_2_0 = rec_0_2 = 0;
 }
 
@@ -29,6 +29,8 @@ void CountRecorder::record(IBD_Node *node) {
         ++rec_2_0;
     if (bitmask & RECOVER_0_2)
         ++rec_0_2;
+    if (node->lod < 0)
+        ++negative_lod;
     if (node->lod > 0)
         ++positive_lod;
     ++sites;
@@ -37,6 +39,7 @@ void CountRecorder::record(IBD_Node *node) {
 void CountRecorder::report(std::ostream &output) const {
         output << '\t' << sites << '\t'
             << positive_lod << '\t'
+            << negative_lod << '\t'
             << both << '\t'
             << in_mask << '\t'
             << maf_low << '\t'

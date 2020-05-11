@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include <stdexcept>
+
 VCF_File::VCF_File(std::istream* in_file, std::ostream &output) :
     input(in_file) {
     // setup lines for subsequent reading, write individuals to output

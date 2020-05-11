@@ -52,6 +52,7 @@ class gen_mapper:
                   + self.cm_positions[ind])
         return result
 
+
 def main():
     if 'snakemake' in globals():
         gen = snakemake.input[0]

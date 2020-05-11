@@ -244,7 +244,7 @@ TEST(IBDSegment, CanRecordStats) {
     ASSERT_EQ(output.str(),
             // starting at last 9, sites positve_lod both
             // in_mask maf_low maf_high 2_0 0_2
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\n");
+            "test\t2\t1\t9\t9\t9\t9\t0\t2\t2\t2\t1\t1\t3\n");
     output.str("");
     output.clear();
 
@@ -262,7 +262,7 @@ TEST(IBDSegment, CanRecordStats) {
     seg.add_lod(2, 60, -0.1, MAF_HIGH, output);
     // last site (50) doesn't apply as it's excluded
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t50\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\n");
+            "test\t2\t1\t50\t0.4\t4\t4\t0\t0\t4\t0\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // have start = end
@@ -270,7 +270,7 @@ TEST(IBDSegment, CanRecordStats) {
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t0\t1\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // generate multiple outputs at once
@@ -282,9 +282,9 @@ TEST(IBDSegment, CanRecordStats) {
     seg.add_lod(2, 5, 0.7, MAF_HIGH, output);
     seg.add_lod(2, 6, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t1\t0\t0\t0\t0\n"
-            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\n"
-            "test\t2\t5\t6\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\n"
+            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\n"
+            "test\t2\t5\t6\t0.7\t1\t1\t0\t0\t0\t0\t1\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // split into more positions
@@ -303,9 +303,9 @@ TEST(IBDSegment, CanRecordStats) {
     seg.add_lod(2, 12, 0.3, MAF_HIGH, output);
     seg.add_lod(2, 13, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t1\t0\t0\t0\t0\n"
-            "test\t2\t3\t8\t0.5\t5\t5\t0\t0\t5\t0\t0\t0\n"
-            "test\t2\t9\t13\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\n"
+            "test\t2\t3\t8\t0.5\t5\t5\t0\t0\t0\t5\t0\t0\t0\n"
+            "test\t2\t9\t13\t1.2\t4\t4\t0\t0\t0\t0\t4\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // trigger reversal twice
@@ -321,11 +321,11 @@ TEST(IBDSegment, CanRecordStats) {
     seg.add_lod(2, 9, 0.5, RECOVER_2_0, output);
     seg.add_lod(2, 10, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t1\t0\t0\t0\t0\n"
-            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\n"
-            "test\t2\t5\t6\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\n"
-            "test\t2\t7\t8\t1.9\t1\t1\t0\t0\t0\t0\t0\t1\n"
-            "test\t2\t9\t10\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\n"
+            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\n"
+            "test\t2\t5\t6\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\t0\n"
+            "test\t2\t7\t8\t1.9\t1\t1\t0\t0\t0\t0\t0\t0\t1\n"
+            "test\t2\t9\t10\t0.5\t1\t1\t0\t0\t0\t0\t0\t1\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // one output with a late max
@@ -340,7 +340,7 @@ TEST(IBDSegment, CanRecordStats) {
     seg.add_lod(2, 8, 5, MAF_HIGH, output);
     seg.add_lod(2, 9, -30, RECOVER_0_2, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t9\t26\t8\t3\t0\t2\t5\t1\t0\t0\n");
+            "test\t2\t1\t9\t26\t8\t3\t5\t0\t2\t5\t1\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 }
 
@@ -361,7 +361,7 @@ TEST(IBDSegment, CanRecordStatsInclusive) {
     ASSERT_EQ('\0', output.str().c_str()[0]);
     seg.purge(output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\n");
+            "test\t2\t1\t9\t9\t9\t9\t0\t2\t2\t2\t1\t1\t3\n");
     output.str("");
     output.clear();
 
@@ -378,7 +378,7 @@ TEST(IBDSegment, CanRecordStatsInclusive) {
     // and less than 0
     seg.add_lod(2, 60, -0.1, MAF_HIGH, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t4\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\n");
+            "test\t2\t1\t4\t0.4\t4\t4\t0\t0\t4\t0\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // have start = end
@@ -386,7 +386,7 @@ TEST(IBDSegment, CanRecordStatsInclusive) {
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t0\t1\t0\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // generate multiple outputs at once
@@ -398,9 +398,9 @@ TEST(IBDSegment, CanRecordStatsInclusive) {
     seg.add_lod(2, 5, 0.7, MAF_HIGH, output);
     seg.add_lod(2, 6, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t1\t0\t0\t0\t0\n"
-            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\n"
-            "test\t2\t5\t5\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\n"
+            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\n"
+            "test\t2\t5\t5\t0.7\t1\t1\t0\t0\t0\t0\t1\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // split into more positions
@@ -419,9 +419,9 @@ TEST(IBDSegment, CanRecordStatsInclusive) {
     seg.add_lod(2, 12, 0.3, MAF_HIGH, output);
     seg.add_lod(2, 13, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t1\t0\t0\t0\t0\n"
-            "test\t2\t3\t7\t0.5\t5\t5\t0\t0\t5\t0\t0\t0\n"
-            "test\t2\t9\t12\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\n"
+            "test\t2\t3\t7\t0.5\t5\t5\t0\t0\t0\t5\t0\t0\t0\n"
+            "test\t2\t9\t12\t1.2\t4\t4\t0\t0\t0\t0\t4\t0\t0\n");
     ASSERT_EQ(seg.size(), 0);
 
     // trigger reversal twice
@@ -437,11 +437,11 @@ TEST(IBDSegment, CanRecordStatsInclusive) {
     seg.add_lod(2, 9, 0.5, RECOVER_2_0, output);
     seg.add_lod(2, 10, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t1\t0\t0\t0\t0\n"
-            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\n"
-            "test\t2\t5\t5\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\n"
-            "test\t2\t7\t7\t1.9\t1\t1\t0\t0\t0\t0\t0\t1\n"
-            "test\t2\t9\t9\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\n"
+            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\n"
+            "test\t2\t5\t5\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\t0\n"
+            "test\t2\t7\t7\t1.9\t1\t1\t0\t0\t0\t0\t0\t0\t1\n"
+            "test\t2\t9\t9\t0.5\t1\t1\t0\t0\t0\t0\t0\t1\t0\n");
     ASSERT_EQ(seg.size(), 0);
 }
 
@@ -616,7 +616,7 @@ TEST(IBDSegmentSites, CanRecordStats) {
     ASSERT_EQ('\0', output.str().c_str()[0]);
     seg.purge(output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n");
+            "test\t2\t1\t9\t9\t9\t9\t0\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n");
     output.str("");
     output.clear();
 
@@ -634,7 +634,7 @@ TEST(IBDSegmentSites, CanRecordStats) {
     seg.add_lod(2, 60, -0.1, MAF_HIGH, output);
     // last site (50) doesn't apply as it's excluded
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t50\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\t1,2,3,4\n");
+            "test\t2\t1\t50\t0.4\t4\t4\t0\t0\t4\t0\t0\t0\t0\t1,2,3,4\n");
     ASSERT_EQ(seg.size(), 0);
 
     // have start = end
@@ -642,7 +642,7 @@ TEST(IBDSegmentSites, CanRecordStats) {
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t1\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t0\t1\t0\t0\t0\t1\n");
     ASSERT_EQ(seg.size(), 0);
 
     // generate multiple outputs at once
@@ -654,9 +654,9 @@ TEST(IBDSegmentSites, CanRecordStats) {
     seg.add_lod(2, 5, 0.7, MAF_HIGH, output);
     seg.add_lod(2, 6, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t1\t0\t0\t0\t0\t1\n"
-            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\t3\n"
-            "test\t2\t5\t6\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\t5\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\t1\n"
+            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\t3\n"
+            "test\t2\t5\t6\t0.7\t1\t1\t0\t0\t0\t0\t1\t0\t0\t5\n");
     ASSERT_EQ(seg.size(), 0);
 
     // split into more positions
@@ -675,9 +675,9 @@ TEST(IBDSegmentSites, CanRecordStats) {
     seg.add_lod(2, 12, 0.3, MAF_HIGH, output);
     seg.add_lod(2, 13, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t1\t0\t0\t0\t0\t1\n"
-            "test\t2\t3\t8\t0.5\t5\t5\t0\t0\t5\t0\t0\t0\t3,4,5,6,7\n"
-            "test\t2\t9\t13\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\t9,10,11,12\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\t1\n"
+            "test\t2\t3\t8\t0.5\t5\t5\t0\t0\t0\t5\t0\t0\t0\t3,4,5,6,7\n"
+            "test\t2\t9\t13\t1.2\t4\t4\t0\t0\t0\t0\t4\t0\t0\t9,10,11,12\n");
     ASSERT_EQ(seg.size(), 0);
 
     // trigger reversal twice
@@ -693,11 +693,11 @@ TEST(IBDSegmentSites, CanRecordStats) {
     seg.add_lod(2, 9, 0.5, RECOVER_2_0, output);
     seg.add_lod(2, 10, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t2\t2\t1\t1\t0\t1\t0\t0\t0\t0\t1\n"
-            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\t3\n"
-            "test\t2\t5\t6\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t5\n"
-            "test\t2\t7\t8\t1.9\t1\t1\t0\t0\t0\t0\t0\t1\t7\n"
-            "test\t2\t9\t10\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\t9\n");
+            "test\t2\t1\t2\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\t1\n"
+            "test\t2\t3\t4\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\t3\n"
+            "test\t2\t5\t6\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\t0\t5\n"
+            "test\t2\t7\t8\t1.9\t1\t1\t0\t0\t0\t0\t0\t0\t1\t7\n"
+            "test\t2\t9\t10\t0.5\t1\t1\t0\t0\t0\t0\t0\t1\t0\t9\n");
     ASSERT_EQ(seg.size(), 0);
 }
 
@@ -719,7 +719,7 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive) {
     ASSERT_EQ('\0', output.str().c_str()[0]);
     seg.purge(output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t9\t9\t9\t9\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n");
+            "test\t2\t1\t9\t9\t9\t9\t0\t2\t2\t2\t1\t1\t3\t1,2,3,4,5,6,7,8,9\n");
     output.str("");
     output.clear();
 
@@ -735,8 +735,9 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive) {
     ASSERT_EQ(seg.size(), 3);
     // and less than 0
     seg.add_lod(2, 60, -0.1, MAF_HIGH, output);
+    // the excluded site won't count
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t4\t0.4\t4\t4\t0\t4\t0\t0\t0\t0\t1,2,3,4\n");
+            "test\t2\t1\t4\t0.4\t4\t4\t0\t0\t4\t0\t0\t0\t0\t1,2,3,4\n");
     ASSERT_EQ(seg.size(), 0);
 
     // have start = end
@@ -744,7 +745,7 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive) {
     seg.add_lod(2, 1, 2, MAF_LOW, output);
     seg.add_lod(2, 2, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t1\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t0\t1\t0\t0\t0\t1\n");
     ASSERT_EQ(seg.size(), 0);
 
     // generate multiple outputs at once
@@ -756,9 +757,9 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive) {
     seg.add_lod(2, 5, 0.7, MAF_HIGH, output);
     seg.add_lod(2, 6, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t1\t0\t0\t0\t0\t1\n"
-            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\t3\n"
-            "test\t2\t5\t5\t0.7\t1\t1\t0\t0\t0\t1\t0\t0\t5\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\t1\n"
+            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\t3\n"
+            "test\t2\t5\t5\t0.7\t1\t1\t0\t0\t0\t0\t1\t0\t0\t5\n");
     ASSERT_EQ(seg.size(), 0);
 
     // split into more positions
@@ -777,9 +778,9 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive) {
     seg.add_lod(2, 12, 0.3, MAF_HIGH, output);
     seg.add_lod(2, 13, -2, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t1\t0\t0\t0\t0\t1\n"
-            "test\t2\t3\t7\t0.5\t5\t5\t0\t0\t5\t0\t0\t0\t3,4,5,6,7\n"
-            "test\t2\t9\t12\t1.2\t4\t4\t0\t0\t0\t4\t0\t0\t9,10,11,12\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\t1\n"
+            "test\t2\t3\t7\t0.5\t5\t5\t0\t0\t0\t5\t0\t0\t0\t3,4,5,6,7\n"
+            "test\t2\t9\t12\t1.2\t4\t4\t0\t0\t0\t0\t4\t0\t0\t9,10,11,12\n");
     ASSERT_EQ(seg.size(), 0);
 
     // trigger reversal twice
@@ -795,10 +796,10 @@ TEST(IBDSegmentSites, CanRecordStatsInclusive) {
     seg.add_lod(2, 9, 0.5, RECOVER_2_0, output);
     seg.add_lod(2, 10, -3, IN_MASK, output);
     ASSERT_EQ(output.str(),
-            "test\t2\t1\t1\t2\t1\t1\t0\t1\t0\t0\t0\t0\t1\n"
-            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t1\t0\t0\t0\t3\n"
-            "test\t2\t5\t5\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t5\n"
-            "test\t2\t7\t7\t1.9\t1\t1\t0\t0\t0\t0\t0\t1\t7\n"
-            "test\t2\t9\t9\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\t9\n");
+            "test\t2\t1\t1\t2\t1\t1\t0\t0\t1\t0\t0\t0\t0\t1\n"
+            "test\t2\t3\t3\t0.5\t1\t1\t0\t0\t0\t1\t0\t0\t0\t3\n"
+            "test\t2\t5\t5\t0.5\t1\t1\t0\t0\t0\t0\t1\t0\t0\t5\n"
+            "test\t2\t7\t7\t1.9\t1\t1\t0\t0\t0\t0\t0\t0\t1\t7\n"
+            "test\t2\t9\t9\t0.5\t1\t1\t0\t0\t0\t0\t0\t1\t0\t9\n");
     ASSERT_EQ(seg.size(), 0);
 }

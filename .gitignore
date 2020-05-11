@@ -2,4 +2,6 @@
 *.out
 .*
 build/
+debug/
+release/
 exe/

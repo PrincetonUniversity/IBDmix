@@ -16,7 +16,7 @@ class Recorder{
 class CountRecorder : public Recorder{
  private:
     int in_mask, maf_low, maf_high, rec_2_0,
-        rec_0_2, sites, both, positive_lod;
+        rec_0_2, sites, both, positive_lod, negative_lod;
  public:
     void writeHeader(std::ostream &output) const;
     void initializeSegment();
