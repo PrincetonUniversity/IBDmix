@@ -19,10 +19,10 @@ paths:
     genetic_map: "/tigress/tcomi/hg19/{map}/\
                   {map}_recombination_map_hapmap_format_hg19_chr_{chrom}.txt"
     hap_map: "/tigress/tcomi/hapmap/genetic_map_GRCh37_chr{chrom}.txt"
-    output_root: /tigress/tcomi/ibdmix_altai_2013_all_maps
+    output_root: /tigress/tcomi/ibdmix_2016
     sample_name: altai_1kg
     genotype_file: "{output_root}/genotype/{sample_name}_{chrom}.gz"
-    ibd_output: "{output_root}/ibd_raw/\
+    ibd_output: "{output_root}/ibd_raw_stats/\
                  {sample_name}_{population}_{chrom}.gz"
     ibd_bed: "{output_root}/ibd_bed/\
               {sample_name}_{population}_{chrom}.gz"
@@ -41,16 +41,16 @@ IBDmix:
         --archaic-error 0.01
         --modern-error-max 0.002
         --modern-error-proportion 2
+        --more-stats
         #--write-snps
-        #--more-stats
         #--inclusive-end
 
     # True to calculate total masked bases and largest masked region
-    mask_stats: True
+    # mask_stats: True
 
     # remove for no summary, add 0s for no filtering
-    summary_lod:
-        - 4
+    # summary_lod:
+    #     - 4
 
     summary_length:
         - 50000
