@@ -8,7 +8,7 @@ VCF_File::VCF_File(std::istream *in_file, std::ostream &output)
     : input(in_file) {
   // setup lines for subsequent reading, write individuals to output
   number_individuals = 0;
-  chromosome = 0;
+  chromosome = "";
   // remove header
   while (std::getline(*input, buffer)) {
     // header lines without needed information
@@ -55,15 +55,15 @@ VCF_File::VCF_File(std::istream *in_file, std::ostream &output)
 }
 
 bool VCF_File::update(bool skip_non_informative) {
-  while (chromosome != -1 && !read_line(skip_non_informative)) {
+  while (chromosome != "-" && !read_line(skip_non_informative)) {
   }
-  return chromosome != -1;
+  return chromosome != "-";
 }
 
 bool VCF_File::read_line(bool skip_non_informative) {
   isvalid = true;
   if (!std::getline(*input, buffer)) {
-    chromosome = -1;
+    chromosome = "-";
     return false;
   }
   iss.clear();

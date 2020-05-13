@@ -34,7 +34,7 @@ class Genotype_Reader {
   std::vector<double> lod_scores;
   std::vector<unsigned char> recover_type;
 
-  int chromosome;
+  std::string chromosome;
   uint64_t position;
   char archaic, ref, alt;
   unsigned char line_filtering;

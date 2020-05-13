@@ -42,7 +42,7 @@ bool Genotype_Reader::update() {
   // - in a masked region
   // - fails to meet allele cutoff
   // If selected is false, lod = 0, unless archaic = (0,2) and modern = (2,0)
-  bool selected = !mask.in_mask(std::to_string(chromosome), position);
+  bool selected = !mask.in_mask(chromosome, position);
   if (!selected) line_filtering |= IN_MASK;
 
   // find the 4th tab and erase from buffer

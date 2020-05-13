@@ -15,7 +15,7 @@ class VCF_File {
   bool parse(const char *start, std::string format);
 
  public:
-  int chromosome;
+  std::string chromosome;
   uint64_t position;
   char reference;
   char alternative;

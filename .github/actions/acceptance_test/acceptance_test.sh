@@ -190,6 +190,18 @@ elif [[ $test_type == "extra" ]]; then
         <(read_result "$resultfile") \
         <(run_ibd_extra_mask $genotype "-itw" $mask)
 
+    echo "short args mask string chroms"
+    resultfile="$url_base/cell_data/outputs/ibd_raw/GWD_20_itw_mask.gz"
+    cmp \
+        <(read_result "$resultfile" | awk 'BEGIN {OFS="\t"} NR>1{$2 = "chr" $2} {print $0}' | head) \
+        <($ibdmix \
+            -g <(wget -qO - $genotype | zcat | awk  'BEGIN {OFS="\t"} NR>1{$1 = "chr" $1} {print $0}') \
+            -s <(wget -qO - "$url_base/cell_data/samples/GWD.txt") \
+            -itw \
+            -r <(wget -qO - $mask | awk  'BEGIN {OFS="\t"} {$1 = "chr" $1 ; print $0}') \
+            --output >( head ) \
+         )
+
 else
     echo "Unknown test type $test_type"
     exit 1

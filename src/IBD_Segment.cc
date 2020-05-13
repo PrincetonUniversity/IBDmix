@@ -20,9 +20,9 @@ void IBD_Segment::add_recorder(std::shared_ptr<Recorder> recorder) {
   recorders.push_back(recorder);
 }
 
-void IBD_Segment::add_lod(int chromosome, uint64_t position, double lod,
+void IBD_Segment::add_lod(std::string chromosome, uint64_t position, double lod,
                           unsigned char bitmask, std::ostream &output) {
-  if (chromosome > 0) chrom = chromosome;
+  if (chromosome != "") this->chromosome = chromosome;
   // ignore negative lod as first entry
   if (segment.empty() && lod < 0) {
     return;
@@ -33,7 +33,7 @@ void IBD_Segment::add_lod(int chromosome, uint64_t position, double lod,
 
 void IBD_Segment::purge(std::ostream &output) {
   // -1 and 0s are placeholders, the -inf forces segment to pop all
-  add_lod(-1, 0, -std::numeric_limits<double>::infinity(), 0, output);
+  add_lod("", 0, -std::numeric_limits<double>::infinity(), 0, output);
 }
 
 void IBD_Segment::add_node(IBD_Node *node, std::ostream &output) {
@@ -75,8 +75,8 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output) {
         if (ptr->lod != -std::numeric_limits<double>::infinity())
           pos = ptr->position;
       }
-      output << name << '\t' << chrom << '\t' << segment.start->position << '\t'
-             << pos << '\t' << segment.end->cumulative_lod;
+      output << name << '\t' << chromosome << '\t' << segment.start->position
+             << '\t' << pos << '\t' << segment.end->cumulative_lod;
       report_stats(output);
       output << '\n';
     }

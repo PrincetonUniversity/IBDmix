@@ -15,7 +15,7 @@ class IBD_Segment {
   IBD_Stack segment;
   IBD_Pool *pool;
   std::vector<std::shared_ptr<Recorder>> recorders;
-  int chrom;
+  std::string chromosome = "";
   bool exclusive_end;
 
   void add_node(IBD_Node *node, std::ostream &output);
@@ -28,7 +28,7 @@ class IBD_Segment {
   IBD_Segment(std::string name, double threshold, IBD_Pool *pool,
               bool exclusive_end = true);
   ~IBD_Segment();
-  void add_lod(int chromosome, uint64_t position, double lod,
+  void add_lod(std::string chromosome, uint64_t position, double lod,
                unsigned char bitmask, std::ostream &output);
   void add_recorder(std::shared_ptr<Recorder> recorder);
   void purge(std::ostream &output);
