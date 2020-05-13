@@ -87,31 +87,31 @@ int main(int argc, char *argv[]) {
   if (sample.is_open()) sample.close();
 
   while (reader.update()) {
+    auto lods = reader.get_lods();
     // all sites are 0
-    if (!include_zeros && reader.lod_cache[0] == 0 &&
-        reader.lod_cache[1] == 0 && reader.lod_cache[2] == 0)
+    if (!include_zeros && lods[0] == 0 && lods[1] == 0 && lods[2] == 0)
       continue;
 
     // any sites are inf, replace with -100
-    if (isinf(reader.lod_cache[0])) {
-      reader.lod_cache[0] = -100;
+    if (isinf(lods[0])) {
+      lods[0] = -100;
       if (!include_ninfs) continue;
     }
 
-    if (isinf(reader.lod_cache[1])) {
-      reader.lod_cache[1] = -100;
+    if (isinf(lods[1])) {
+      lods[1] = -100;
       if (!include_ninfs) continue;
     }
 
-    if (isinf(reader.lod_cache[2])) {
-      reader.lod_cache[2] = -100;
+    if (isinf(lods[2])) {
+      lods[2] = -100;
       if (!include_ninfs) continue;
     }
 
     output << reader.chromosome << '\t' << reader.position << '\t' << reader.ref
            << '\t' << reader.alt << '\t' << reader.archaic << '\t'
-           << reader.allele_frequency << '\t' << reader.lod_cache[0] << '\t'
-           << reader.lod_cache[1] << '\t' << reader.lod_cache[2] << '\n';
+           << reader.allele_frequency << '\t' << lods[0] << '\t' << lods[1]
+           << '\t' << lods[2] << '\n';
   }
 
   genotype.close();

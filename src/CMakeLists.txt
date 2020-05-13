@@ -11,13 +11,16 @@ target_include_directories(ibd_stack PUBLIC ../include)
 add_library(mask_reader STATIC Mask_Reader.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Mask_Reader.h)
 target_include_directories(mask_reader PUBLIC ../include)
 
+add_library(lod_calculator STATIC lod_calculator.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/lod_calculator.h)
+target_include_directories(lod_calculator PUBLIC ../include)
+
 add_library(sample_mapper STATIC Sample_Mapper.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Sample_Mapper.h)
 target_include_directories(sample_mapper PUBLIC ../include)
 
 add_library(genotype_reader STATIC Genotype_Reader.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Genotype_Reader.h)
 target_include_directories(genotype_reader PUBLIC ../include)
 target_link_libraries(genotype_reader
-    mask_reader sample_mapper)
+    mask_reader sample_mapper lod_calculator)
 
 add_library(recorders STATIC Segment_Recorders.cc ${IBDmix_SOURCE_DIR}/include/IBDmix/Segment_Recorders.h)
 target_include_directories(recorders PUBLIC ../include)

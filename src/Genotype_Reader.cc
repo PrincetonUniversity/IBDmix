@@ -1,6 +1,5 @@
 #include "IBDmix/Genotype_Reader.h"
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,20 +9,6 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
-
-Genotype_Reader::Genotype_Reader(std::istream *genotype, std::istream *mask,
-                                 double archaic_error, double modern_error_max,
-                                 double modern_error_proportion, double minesp,
-                                 int minor_allele_cutoff)
-    : genotype(genotype),
-      mask(mask),
-      archaic_error(archaic_error),
-      modern_error_max(modern_error_max),
-      modern_error_proportion(modern_error_proportion),
-      minesp(minesp),
-      minor_allele_cutoff(minor_allele_cutoff) {
-  lod_cache.resize(3);
-}
 
 int Genotype_Reader::initialize(std::istream &samples, std::string archaic) {
   // using samples list and header line, determine number of samples
@@ -76,12 +61,12 @@ void Genotype_Reader::process_line_buffer(bool selected) {
   // throughout, *2 to skip tabs
   archaic = buffer[sample_mapper.archaic_index * 2];
   selected &= find_frequency();
-  double modern_error = get_modern_error();
 
-  update_lod_cache(archaic, allele_frequency, modern_error, selected);
+  calculator.update_lod_cache(archaic, allele_frequency, selected);
 
   for (int i = 0; i < sample_mapper.size(); i++) {
-    lod_scores[i] = calculate_lod(buffer[sample_mapper.sample_to_index[i] * 2]);
+    lod_scores[i] =
+        calculator.calculate_lod(buffer[sample_mapper.sample_to_index[i] * 2]);
     recover_type[i] = 0;
   }
 
@@ -100,7 +85,8 @@ void Genotype_Reader::process_line_buffer(bool selected) {
 bool Genotype_Reader::find_frequency() {
   // determine the observed frequency of alternative alleles
   // Returns true if enough counts were observed above the cutoff value
-  int total_counts = 0, alt_counts = 0;
+  int total_counts = 0;
+  double alt_counts = 0;
   char current;
   bool select = true;
   for (int i = 0; i < sample_mapper.size(); i++)
@@ -121,65 +107,14 @@ bool Genotype_Reader::find_frequency() {
   if (total_counts == 0)
     allele_frequency = 0;
   else
-    allele_frequency = static_cast<double>(alt_counts) / total_counts;
+    allele_frequency = alt_counts / total_counts;
   return select;
-}
-
-double Genotype_Reader::get_modern_error() {
-  double frequency = allele_frequency;
-  if (frequency > 0.5)  // convert to minor frequency
-    frequency = 1 - frequency;
-  double prop_error = frequency * modern_error_proportion;
-
-  return prop_error < modern_error_max ? prop_error : modern_error_max;
-}
-
-void Genotype_Reader::update_lod_cache(char archaic, double freq_b,
-                                       double modern_error, bool selected) {
-  // update the lod cache array based on values along genotype file line
-  // TODO(troycomi) should minesp be added to more terms? (e.g. 2,2)
-  double freq_a = 1 - freq_b;
-  double err_0 = 1 - archaic_error * (1 - archaic_error);
-  double err_1 =
-      (1 - archaic_error) * (1 - modern_error) + archaic_error * modern_error;
-  double err_2 =
-      (1 - archaic_error) * modern_error + archaic_error * (1 - modern_error);
-
-  if (archaic == '0') {
-    if (selected) {
-      lod_cache[0] = log10(err_1 / freq_a / err_0);
-      lod_cache[1] = log10(0.5 / err_0 * (err_2 / freq_b + err_1 / freq_a));
-    } else {
-      lod_cache[0] = lod_cache[1] = 0;
-    }
-    lod_cache[2] = log10((err_2 + minesp) / freq_b / (err_0 + minesp));
-  } else if (archaic == '1') {
-    if (selected) {
-      double err_3 = 3 - 2 * err_0;
-      lod_cache[0] = -log10(freq_a * err_3);
-      lod_cache[1] = -log10(2 * freq_a * freq_b * err_3);
-      lod_cache[2] = -log10(freq_b * err_3);
-    } else {
-      lod_cache[0] = lod_cache[1] = lod_cache[2] = 0;
-    }
-  } else if (archaic == '2') {
-    lod_cache[0] = log10((err_2 + minesp) / freq_a / (err_0 + minesp));
-    if (selected) {
-      lod_cache[1] = log10(0.5 / err_0 * (err_1 / freq_b + err_2 / freq_a));
-      lod_cache[2] = log10(err_1 / freq_b / err_0);
-    } else {
-      lod_cache[1] = lod_cache[2] = 0;
-    }
-  } else if (archaic == '9') {
-    lod_cache[0] = lod_cache[1] = lod_cache[2] = 0;
-  }
-}
-
-double Genotype_Reader::calculate_lod(char modern) {
-  if (modern == '9') return 0;
-  return lod_cache[modern - '0'];
 }
 
 const std::vector<std::string> &Genotype_Reader::get_samples() const {
   return sample_mapper.samples;
+}
+
+const std::vector<double> &Genotype_Reader::get_lods() const {
+  return calculator.lod_cache;
 }
