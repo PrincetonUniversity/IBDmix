@@ -11,7 +11,7 @@ IBD_Node *IBD_Stack::pop() {
   return result;
 }
 
-int IBD_Stack::size() {
+int IBD_Stack::size() const {
   int count = 0;
   for (IBD_Node *ptr = top; ptr != nullptr; ptr = ptr->next) count++;
   return count;
@@ -43,7 +43,7 @@ void IBD_Stack::reverse() {
   top = result;
 }
 
-bool IBD_Stack::empty() { return top == nullptr; }
+bool IBD_Stack::empty() const { return top == nullptr; }
 
 IBD_Pool::IBD_Pool(int initial_buffer) : buffer_size(initial_buffer) {
   allocate(buffer_size);
@@ -109,4 +109,4 @@ void IBD_Pool::reclaim_all(IBD_Node **top) {
   *top = nullptr;
 }
 
-int IBD_Pool::size(void) { return pool.size(); }
+int IBD_Pool::size(void) const { return pool.size(); }

@@ -9,6 +9,18 @@
 #include "IBDmix/Segment_Recorders.h"
 
 class IBD_Segment {
+ public:
+  IBD_Segment(std::string name, double threshold, IBD_Pool *pool,
+              bool exclusive_end = true);
+  ~IBD_Segment();
+  void add_lod(std::string chromosome, uint64_t position, double lod,
+               unsigned char bitmask, std::ostream &output);
+  void add_recorder(std::shared_ptr<Recorder> recorder);
+  void purge(std::ostream &output);
+  int size() const;
+  void write(std::ostream &strm) const;
+  void writeHeader(std::ostream &strm) const;
+
  private:
   std::string name;
   double thresh;
@@ -23,18 +35,6 @@ class IBD_Segment {
   void update_stats_recursive(IBD_Node *node);
   void update_stats(IBD_Node *node);
   void report_stats(std::ostream &output);
-
- public:
-  IBD_Segment(std::string name, double threshold, IBD_Pool *pool,
-              bool exclusive_end = true);
-  ~IBD_Segment();
-  void add_lod(std::string chromosome, uint64_t position, double lod,
-               unsigned char bitmask, std::ostream &output);
-  void add_recorder(std::shared_ptr<Recorder> recorder);
-  void purge(std::ostream &output);
-  int size();
-  void write(std::ostream &strm) const;
-  void writeHeader(std::ostream &strm) const;
 };
 
 std::ostream &operator<<(std::ostream &strm, const IBD_Segment &segment);

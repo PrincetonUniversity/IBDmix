@@ -20,5 +20,5 @@ class Sample_Mapper {
   void find_archaic(const std::string &archaic);
   // populate the sample_to_index map
   void map(std::vector<std::string> requested_samples);
-  int size() { return samples.size(); }
+  int size() const { return samples.size(); }
 };

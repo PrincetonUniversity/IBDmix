@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-double LodCalculator::get_modern_error(double frequency) {
+double LodCalculator::get_modern_error(double frequency) const {
   if (frequency > 0.5)  // convert to minor frequency
     frequency = 1 - frequency;
   double prop_error = frequency * modern_error_proportion;
@@ -52,7 +52,7 @@ void LodCalculator::update_lod_cache(char archaic, double freq_b,
   }
 }
 
-double LodCalculator::calculate_lod(char modern) {
+double LodCalculator::calculate_lod(char modern) const {
   if (modern == '9') return 0;
   return lod_cache[modern - '0'];
 }

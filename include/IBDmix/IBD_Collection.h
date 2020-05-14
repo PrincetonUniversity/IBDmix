@@ -7,12 +7,6 @@
 #include "IBDmix/IBD_Segment.h"
 
 class IBD_Collection {
- private:
-  std::vector<IBD_Segment> IBDs;
-  double threshold;
-  bool exclusive_end;
-  IBD_Pool pool;
-
  public:
   explicit IBD_Collection(double threshold, bool exclusive_end = true)
       : threshold(threshold), exclusive_end(exclusive_end) {}
@@ -23,4 +17,10 @@ class IBD_Collection {
   enum Recorder { counts, sites, lods };
   void add_recorder(IBD_Collection::Recorder type);
   void writeHeader(std::ostream &strm) const;
+
+ private:
+  std::vector<IBD_Segment> IBDs;
+  double threshold;
+  bool exclusive_end;
+  IBD_Pool pool;
 };

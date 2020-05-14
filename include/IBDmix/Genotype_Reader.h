@@ -7,27 +7,13 @@
 #include "IBDmix/Sample_Mapper.h"
 #include "IBDmix/lod_calculator.h"
 
-const unsigned char IN_MASK = 1 << 0;
-const unsigned char MAF_LOW = 1 << 1;
-const unsigned char MAF_HIGH = 1 << 2;
-const unsigned char RECOVER_2_0 = 1 << 3;
-const unsigned char RECOVER_0_2 = 1 << 4;
+constexpr unsigned char IN_MASK = 1 << 0;
+constexpr unsigned char MAF_LOW = 1 << 1;
+constexpr unsigned char MAF_HIGH = 1 << 2;
+constexpr unsigned char RECOVER_2_0 = 1 << 3;
+constexpr unsigned char RECOVER_0_2 = 1 << 4;
 
 class Genotype_Reader {
- private:
-  std::istream *genotype;
-  std::istringstream iss;
-  std::string token;
-  std::string buffer;
-  int minor_allele_cutoff;
-
-  Mask_Reader mask;
-  Sample_Mapper sample_mapper;
-  LodCalculator calculator;
-
-  bool find_frequency();
-  void process_line_buffer(bool selected);
-
  public:
   double allele_frequency = 0;
 
@@ -54,5 +40,19 @@ class Genotype_Reader {
 
   const std::vector<std::string> &get_samples() const;
   const std::vector<double> &get_lods() const;
-  int num_samples() { return sample_mapper.size(); }
+  int num_samples() const { return sample_mapper.size(); }
+
+ private:
+  std::istream *genotype;
+  std::istringstream iss;
+  std::string token;
+  std::string buffer;
+  int minor_allele_cutoff;
+
+  Mask_Reader mask;
+  Sample_Mapper sample_mapper;
+  LodCalculator calculator;
+
+  bool find_frequency();
+  void process_line_buffer(bool selected);
 };

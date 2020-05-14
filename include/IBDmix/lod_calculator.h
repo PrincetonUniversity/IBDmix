@@ -1,11 +1,5 @@
 #include <vector>
 class LodCalculator {
- private:
-  double archaic_error;
-  double modern_error_max;
-  double modern_error_proportion;
-  double minesp;
-
  public:
   std::vector<double> lod_cache;
 
@@ -17,7 +11,13 @@ class LodCalculator {
         minesp(minesp),
         lod_cache(3) {}
 
-  double get_modern_error(double frequency);
+  double get_modern_error(double frequency) const;
   void update_lod_cache(char archaic, double freq_b, bool selected = true);
-  double calculate_lod(char modern);
+  double calculate_lod(char modern) const;
+
+ private:
+  double archaic_error;
+  double modern_error_max;
+  double modern_error_proportion;
+  double minesp;
 };

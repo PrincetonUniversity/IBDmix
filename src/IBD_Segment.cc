@@ -129,7 +129,7 @@ void IBD_Segment::write(std::ostream &strm) const {
   }
 }
 
-int IBD_Segment::size(void) { return segment.size(); }
+int IBD_Segment::size(void) const { return segment.size(); }
 
 std::ostream &operator<<(std::ostream &strm, const IBD_Segment &segment) {
   segment.write(strm);
