@@ -23,7 +23,7 @@ class IBD_Segment {
 
  private:
   std::string name;
-  double thresh;
+  double threshold;
   IBD_Stack segment;
   IBD_Pool *pool;
   std::vector<std::shared_ptr<Recorder>> recorders;
@@ -32,8 +32,8 @@ class IBD_Segment {
 
   void add_node(IBD_Node *node, std::ostream &output);
   void initialize_stats();
-  void update_stats_recursive(IBD_Node *node);
-  void update_stats(IBD_Node *node);
+  void update_stats_recursive(const IBD_Node *node);
+  void update_stats(const IBD_Node *node);
   void report_stats(std::ostream &output);
 };
 

@@ -9,7 +9,7 @@ class Recorder {
  public:
   virtual void writeHeader(std::ostream &output) const = 0;
   virtual void initializeSegment() = 0;
-  virtual void record(IBD_Node *node) = 0;
+  virtual void record(const IBD_Node *node) = 0;
   virtual void report(std::ostream &output) const = 0;
 };
 
@@ -17,7 +17,7 @@ class CountRecorder : public Recorder {
  public:
   void writeHeader(std::ostream &output) const override;
   void initializeSegment() override;
-  void record(IBD_Node *node) override;
+  void record(const IBD_Node *node) override;
   void report(std::ostream &output) const override;
 
  private:
@@ -36,7 +36,7 @@ class SiteRecorder : public Recorder {
  public:
   void writeHeader(std::ostream &output) const override;
   void initializeSegment() override;
-  void record(IBD_Node *node) override;
+  void record(const IBD_Node *node) override;
   void report(std::ostream &output) const override;
 
  private:
@@ -47,7 +47,7 @@ class LODRecorder : public Recorder {
  public:
   void writeHeader(std::ostream &output) const override;
   void initializeSegment() override;
-  void record(IBD_Node *node) override;
+  void record(const IBD_Node *node) override;
   void report(std::ostream &output) const override;
 
  private:

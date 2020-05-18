@@ -14,7 +14,7 @@ void CountRecorder::initializeSegment() {
       rec_2_0 = rec_0_2 = 0;
 }
 
-void CountRecorder::record(IBD_Node *node) {
+void CountRecorder::record(const IBD_Node *node) {
   unsigned char bitmask = node->bitmask;
   if ((bitmask & IN_MASK) && ((bitmask & MAF_LOW) || (bitmask & MAF_HIGH)))
     ++both;
@@ -41,7 +41,7 @@ void SiteRecorder::writeHeader(std::ostream &output) const {
 
 void SiteRecorder::initializeSegment() { positions.clear(); }
 
-void SiteRecorder::record(IBD_Node *node) {
+void SiteRecorder::record(const IBD_Node *node) {
   if (node->lod > 0) positions.push_back(node->position);
 }
 
@@ -59,7 +59,7 @@ void LODRecorder::writeHeader(std::ostream &output) const {
 
 void LODRecorder::initializeSegment() { LODs.clear(); }
 
-void LODRecorder::record(IBD_Node *node) {
+void LODRecorder::record(const IBD_Node *node) {
   if (node->lod > 0) LODs.push_back(node->lod);
 }
 

@@ -7,12 +7,12 @@
 IBD_Segment::IBD_Segment(std::string segment_name, double threshold,
                          IBD_Pool *pool, bool exclusive_end)
     : name(segment_name),
-      thresh(threshold),
+      threshold(threshold),
       pool(pool),
       exclusive_end(exclusive_end) {}
 
 IBD_Segment::~IBD_Segment() {
-  pool->reclaim_all(&segment.top);
+  pool->reclaim_stack(&segment);
   for (auto &recorder : recorders) recorder.reset();
 }
 
@@ -44,52 +44,42 @@ void IBD_Segment::add_node(IBD_Node *node, std::ostream &output) {
   segment.push(node);
 
   // first entry, reset counts
-  if (segment.top->next == nullptr) {
+  if (segment.isSingleton()) {
     initialize_stats();
     update_stats(node);
-    segment.start = segment.end = segment.top;
-    node->cumulative_lod = node->lod;
     return;
   }
-  // cumulative lod defaults to lod
-  segment.top->cumulative_lod =
-      segment.top->next->cumulative_lod + segment.top->lod;
 
-  // new max, collapse to start
-  if (segment.top->cumulative_lod >= segment.end->cumulative_lod) {
+  if (segment.topIsNewMax()) {
     // add all nodes from top to end
-    if (!recorders.empty()) update_stats_recursive(segment.top);
-    segment.end = segment.top;
-    pool->reclaim_between(segment.end, segment.start);
+    if (!recorders.empty()) update_stats_recursive(segment.getTop());
+    segment.setEnd();
+    pool->reclaim_segment(&segment);
   }
 
-  if (segment.top->cumulative_lod < 0) {
+  if (segment.reachedMax()) {
     // write output
-    if (segment.end->cumulative_lod >= thresh) {
-      uint64_t pos = segment.end->position;
-      if (exclusive_end && segment.end != segment.top) {
-        // find previous node 'above' top
-        struct IBD_Node *ptr = segment.top;
-        for (; ptr->next != segment.end; ptr = ptr->next) {
-        }
+    if (segment.endLod() >= threshold) {
+      uint64_t pos = segment.endPosition();
+      if (exclusive_end && !segment.isEnd(segment.getTop())) {
+        // find previous node 'above' end
+        const IBD_Node *ptr = segment.getTop();
+        while (!segment.isEnd(ptr->next)) ptr = ptr->next;
+
         if (ptr->lod != -std::numeric_limits<double>::infinity())
           pos = ptr->position;
       }
-      output << name << '\t' << chromosome << '\t' << segment.start->position
-             << '\t' << pos << '\t' << segment.end->cumulative_lod;
+      output << name << '\t' << chromosome << '\t' << segment.startPosition()
+             << '\t' << pos << '\t' << segment.endLod();
       report_stats(output);
       output << '\n';
     }
-    // reverse list to reprocess remaining nodes
-    segment.reverse();
-    // skip from top to end
-    IBD_Stack reversed(segment.end->next);
-    segment.end->next = nullptr;
-    pool->reclaim_all(&segment.top);
-    // reset member variables to process reversed
-    segment.top = segment.start = segment.end = nullptr;
-    while (!reversed.empty()) {
-      add_node(reversed.pop(), output);
+    IBD_Stack unprocessed = segment.getUnprocessed();
+
+    pool->reclaim_stack(&segment);
+
+    while (!unprocessed.empty()) {
+      add_node(unprocessed.pop(), output);
     }
   }
 }
@@ -98,15 +88,15 @@ void IBD_Segment::initialize_stats() {
   for (auto &recorder : recorders) recorder->initializeSegment();
 }
 
-void IBD_Segment::update_stats_recursive(IBD_Node *node) {
+void IBD_Segment::update_stats_recursive(const IBD_Node *node) {
   // since the list is linked in decreasing order, need to traverse in
   // reverse via recursion
-  if (node == segment.end || node == nullptr) return;
+  if (node == nullptr || segment.isEnd(node)) return;
   update_stats_recursive(node->next);
   update_stats(node);
 }
 
-void IBD_Segment::update_stats(IBD_Node *node) {
+void IBD_Segment::update_stats(const IBD_Node *node) {
   for (auto &recorder : recorders) recorder->record(node);
 }
 
@@ -120,13 +110,7 @@ void IBD_Segment::writeHeader(std::ostream &strm) const {
 
 void IBD_Segment::write(std::ostream &strm) const {
   strm << "--- " << name << " ---\n";
-  for (struct IBD_Node *ptr = segment.top; ptr != nullptr; ptr = ptr->next) {
-    strm << ptr->position << "\t" << ptr->lod << "\t" << ptr->cumulative_lod;
-    if (ptr == segment.top) strm << " <- top";
-    if (ptr == segment.start) strm << " <- start";
-    if (ptr == segment.end) strm << " <- end";
-    strm << "\n";
-  }
+  segment.write(strm);
 }
 
 int IBD_Segment::size(void) const { return segment.size(); }

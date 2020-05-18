@@ -7,7 +7,6 @@
 
 #include "IBDmix/Genotype_Reader.h"
 #include "IBDmix/IBD_Collection.h"
-#include "IBDmix/IBD_Stack.h"
 
 int main(int argc, char *argv[]) {
   CLI::App app{"Find probable IBD regions"};
