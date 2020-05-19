@@ -15,16 +15,6 @@ constexpr unsigned char RECOVER_0_2 = 1 << 4;
 
 class Genotype_Reader {
  public:
-  double allele_frequency = 0;
-
-  std::vector<double> lod_scores;
-  std::vector<unsigned char> recover_type;
-
-  std::string chromosome;
-  uint64_t position;
-  char archaic, ref, alt;
-  unsigned char line_filtering;
-
   Genotype_Reader(std::istream *genotype, std::istream *mask = nullptr,
                   double archaic_error = 0.01, double modern_error_max = 0.002,
                   double modern_error_proportion = 2, double minesp = 1e-200,
@@ -43,17 +33,36 @@ class Genotype_Reader {
   double calculate_lod(char modern) const {
     return calculator.calculate_lod(modern);
   }
+  unsigned char getLineFilter() const { return line_filtering; }
+  unsigned char getRecoverType(int index) const { return recover_type[index]; }
+  double getLodScore(int index) const { return lod_scores[index]; }
+  char getArchaic() const { return archaic; }
+  char getAlt() const { return alt; }
+  char getRef() const { return ref; }
+  uint64_t getPosition() const { return position; }
+  double getAlleleFrequency() const { return allele_frequency; }
+  const std::string &getChromosome() const { return chromosome; }
 
  private:
+  Mask_Reader mask;
+  Sample_Mapper sample_mapper;
+  LodCalculator calculator;
+
   std::istream *genotype;
   std::istringstream iss;
   std::string token;
   std::string buffer;
-  int minor_allele_cutoff;
+  std::string chromosome;
+  std::vector<unsigned char> recover_type;
+  std::vector<double> lod_scores;
 
-  Mask_Reader mask;
-  Sample_Mapper sample_mapper;
-  LodCalculator calculator;
+  int minor_allele_cutoff;
+  unsigned char line_filtering;
+  char archaic;
+  char alt;
+  char ref;
+  uint64_t position;
+  double allele_frequency = 0;
 
   bool find_frequency();
   void process_line_buffer(bool selected);

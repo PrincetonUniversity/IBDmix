@@ -78,33 +78,33 @@ TEST_F(SampleGenotype, CanGetFrequency) {
   reader.initialize(sample);
 
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ(0, reader.line_filtering);
-  ASSERT_EQ(0.125, reader.allele_frequency);
+  ASSERT_EQ(0, reader.getLineFilter());
+  ASSERT_EQ(0.125, reader.getAlleleFrequency());
 
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ(0, reader.line_filtering);
-  ASSERT_EQ(0.25, reader.allele_frequency);
+  ASSERT_EQ(0, reader.getLineFilter());
+  ASSERT_EQ(0.25, reader.getAlleleFrequency());
 
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ(MAF_HIGH, reader.line_filtering);
-  ASSERT_EQ(1, reader.allele_frequency);
+  ASSERT_EQ(MAF_HIGH, reader.getLineFilter());
+  ASSERT_EQ(1, reader.getAlleleFrequency());
 
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ(MAF_LOW, reader.line_filtering);
-  ASSERT_EQ(0, reader.allele_frequency);
+  ASSERT_EQ(MAF_LOW, reader.getLineFilter());
+  ASSERT_EQ(0, reader.getAlleleFrequency());
 
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ(0, reader.line_filtering);
-  ASSERT_EQ(0.5, reader.allele_frequency);
+  ASSERT_EQ(0, reader.getLineFilter());
+  ASSERT_EQ(0.5, reader.getAlleleFrequency());
 
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ(MAF_HIGH, reader.line_filtering);
-  ASSERT_EQ(1, reader.allele_frequency);
+  ASSERT_EQ(MAF_HIGH, reader.getLineFilter());
+  ASSERT_EQ(1, reader.getAlleleFrequency());
 
   // all 9's, maf is too low and high (no counts!)
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ(MAF_LOW | MAF_HIGH, reader.line_filtering);
-  ASSERT_EQ(0, reader.allele_frequency);
+  ASSERT_EQ(MAF_LOW | MAF_HIGH, reader.getLineFilter());
+  ASSERT_EQ(0, reader.getAlleleFrequency());
 
   ASSERT_FALSE(reader.update());
 
@@ -118,12 +118,12 @@ TEST_F(SampleGenotype, CanGetFrequency) {
   reader2.initialize(sample2);
 
   ASSERT_TRUE(reader2.update());
-  ASSERT_EQ(MAF_LOW, reader2.line_filtering);
-  ASSERT_EQ(0.125, reader2.allele_frequency);
+  ASSERT_EQ(MAF_LOW, reader2.getLineFilter());
+  ASSERT_EQ(0.125, reader2.getAlleleFrequency());
 
   ASSERT_TRUE(reader2.update());
-  ASSERT_EQ(0, reader2.line_filtering);
-  ASSERT_EQ(0.25, reader2.allele_frequency);
+  ASSERT_EQ(0, reader2.getLineFilter());
+  ASSERT_EQ(0.25, reader2.getAlleleFrequency());
 }
 
 TEST_F(SampleGenotype, CanUpdateDefaults) {
@@ -134,66 +134,66 @@ TEST_F(SampleGenotype, CanUpdateDefaults) {
 
   // "1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(2, reader.position);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(2, reader.getPosition());
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(0));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(2));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(3));
 
   // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check, 2/0 override
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(3, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - -1.99568) / -1.99568) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(3, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - -1.99568) / -1.99568) < 0.001);
 
   // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(4, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - 0.195605) / 0.195605) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - 0.320544) / 0.320544) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - 0.320544) / 0.320544) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - 0.320544) / 0.320544) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(4, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - 0.195605) / 0.195605) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - 0.320544) / 0.320544) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - 0.320544) / 0.320544) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - 0.320544) / 0.320544) < 0.001);
 
   // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" same as above
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(104, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - 0.195605) / 0.195605) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - 0.320544) / 0.320544) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - 0.320544) / 0.320544) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - 0.320544) / 0.320544) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(104, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - 0.195605) / 0.195605) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - 0.320544) / 0.320544) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - 0.320544) / 0.320544) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - 0.320544) / 0.320544) < 0.001);
 
   // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  passes check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(105, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.713827) / -1.713827) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - 0.127177) / 0.127177) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - 0.127177) / 0.127177) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - 0.127177) / 0.127177) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(105, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.713827) / -1.713827) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - 0.127177) / 0.127177) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - 0.127177) / 0.127177) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - 0.127177) / 0.127177) < 0.001);
 
   // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("2", reader.chromosome);
-  ASSERT_EQ(125, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.79301) / -1.79301) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - -1.79301) / -1.79301) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - 0.301874) / 0.301874) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - 0.301874) / 0.301874) < 0.001);
+  ASSERT_EQ("2", reader.getChromosome());
+  ASSERT_EQ(125, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.79301) / -1.79301) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - -1.79301) / -1.79301) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - 0.301874) / 0.301874) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - 0.301874) / 0.301874) < 0.001);
 
   // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("3", reader.chromosome);
-  ASSERT_EQ(126, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - -1.99568) / -1.99568) < 0.001);
+  ASSERT_EQ("3", reader.getChromosome());
+  ASSERT_EQ(126, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - -1.99568) / -1.99568) < 0.001);
 
   // eof
   ASSERT_FALSE(reader.update());
@@ -210,52 +210,52 @@ TEST_F(SampleGenotype, CanUpdateSamples) {
 
   // "1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(2, reader.position);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(2, reader.getPosition());
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(0));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
 
   // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(3, reader.position);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(3, reader.getPosition());
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(0));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
 
   // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(4, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - 0.00432094) / 0.00432094) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - 0.00432094) / 0.00432094) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(4, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - 0.00432094) / 0.00432094) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - 0.00432094) / 0.00432094) < 0.001);
 
   // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" same as above
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(104, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - 0.00432094) / 0.00432094) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - 0.00432094) / 0.00432094) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(104, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - 0.00432094) / 0.00432094) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - 0.00432094) / 0.00432094) < 0.001);
 
   // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  passes check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(105, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - 0.00432094) / 0.00432094) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - 0.00432094) / 0.00432094) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(105, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - 0.00432094) / 0.00432094) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - 0.00432094) / 0.00432094) < 0.001);
 
   // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("2", reader.chromosome);
-  ASSERT_EQ(125, reader.position);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+  ASSERT_EQ("2", reader.getChromosome());
+  ASSERT_EQ(125, reader.getPosition());
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(0));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
 
   // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("3", reader.chromosome);
-  ASSERT_EQ(126, reader.position);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
+  ASSERT_EQ("3", reader.getChromosome());
+  ASSERT_EQ(126, reader.getPosition());
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(0));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
 
   // eof
   ASSERT_FALSE(reader.update());
@@ -271,66 +271,66 @@ TEST_F(SampleGenotype, CanUpdateMask) {
 
   // "1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(2, reader.position);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(2, reader.getPosition());
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(0));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(2));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(3));
 
   // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check, 2/0 override
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(3, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - -1.99568) / -1.99568) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(3, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - -1.99568) / -1.99568) < 0.001);
 
   // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(4, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - 0.195605) / 0.195605) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - 0.320544) / 0.320544) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - 0.320544) / 0.320544) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - 0.320544) / 0.320544) < 0.001);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(4, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - 0.195605) / 0.195605) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - 0.320544) / 0.320544) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - 0.320544) / 0.320544) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - 0.320544) / 0.320544) < 0.001);
 
   // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" in mask
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(104, reader.position);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[0]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(104, reader.getPosition());
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(0));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(2));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(3));
 
   // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  in mask, 0, 2 override
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(105, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.713827) / -1.713827) < 0.001);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[1]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[2]);
-  ASSERT_DOUBLE_EQ(0, reader.lod_scores[3]);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(105, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.713827) / -1.713827) < 0.001);
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(1));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(2));
+  ASSERT_DOUBLE_EQ(0, reader.getLodScore(3));
 
   // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("2", reader.chromosome);
-  ASSERT_EQ(125, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.79301) / -1.79301) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - -1.79301) / -1.79301) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - 0.301874) / 0.301874) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - 0.301874) / 0.301874) < 0.001);
+  ASSERT_EQ("2", reader.getChromosome());
+  ASSERT_EQ(125, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.79301) / -1.79301) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - -1.79301) / -1.79301) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - 0.301874) / 0.301874) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - 0.301874) / 0.301874) < 0.001);
 
   // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("3", reader.chromosome);
-  ASSERT_EQ(126, reader.position);
-  ASSERT_TRUE(abs((reader.lod_scores[0] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[1] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[2] - -1.99568) / -1.99568) < 0.001);
-  ASSERT_TRUE(abs((reader.lod_scores[3] - -1.99568) / -1.99568) < 0.001);
+  ASSERT_EQ("3", reader.getChromosome());
+  ASSERT_EQ(126, reader.getPosition());
+  ASSERT_TRUE(abs((reader.getLodScore(0) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(1) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(2) - -1.99568) / -1.99568) < 0.001);
+  ASSERT_TRUE(abs((reader.getLodScore(3) - -1.99568) / -1.99568) < 0.001);
 
   // eof
   ASSERT_FALSE(reader.update());
@@ -349,93 +349,93 @@ TEST_F(SampleGenotype, CanCheckLineFilter) {
 
   // "1\t2\tA\tT\t1\t0\t0\t0\t0\n"  fails allele check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(2, reader.position);
-  ASSERT_EQ(MAF_LOW, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], 0);
-  ASSERT_EQ(reader.recover_type[1], 0);
-  ASSERT_EQ(reader.recover_type[2], 0);
-  ASSERT_EQ(reader.recover_type[3], 0);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(2, reader.getPosition());
+  ASSERT_EQ(MAF_LOW, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), 0);
+  ASSERT_EQ(reader.getRecoverType(1), 0);
+  ASSERT_EQ(reader.getRecoverType(2), 0);
+  ASSERT_EQ(reader.getRecoverType(3), 0);
 
   // "1\t3\tA\tT\t2\t0\t0\t0\t0\n" fails check, 2/0 override
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(3, reader.position);
-  ASSERT_EQ(MAF_LOW, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], RECOVER_2_0);
-  ASSERT_EQ(reader.recover_type[1], RECOVER_2_0);
-  ASSERT_EQ(reader.recover_type[2], RECOVER_2_0);
-  ASSERT_EQ(reader.recover_type[3], RECOVER_2_0);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(3, reader.getPosition());
+  ASSERT_EQ(MAF_LOW, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), RECOVER_2_0);
+  ASSERT_EQ(reader.getRecoverType(1), RECOVER_2_0);
+  ASSERT_EQ(reader.getRecoverType(2), RECOVER_2_0);
+  ASSERT_EQ(reader.getRecoverType(3), RECOVER_2_0);
 
   // "1\t4\tA\tT\t1\t0\t1\t1\t1\n"  passes check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(4, reader.position);
-  ASSERT_EQ(0, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], 0);
-  ASSERT_EQ(reader.recover_type[1], 0);
-  ASSERT_EQ(reader.recover_type[2], 0);
-  ASSERT_EQ(reader.recover_type[3], 0);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(4, reader.getPosition());
+  ASSERT_EQ(0, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), 0);
+  ASSERT_EQ(reader.getRecoverType(1), 0);
+  ASSERT_EQ(reader.getRecoverType(2), 0);
+  ASSERT_EQ(reader.getRecoverType(3), 0);
 
   // "1\t104\tA\tT\t1\t0\t1\t1\t1\n" in mask
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(104, reader.position);
-  ASSERT_EQ(IN_MASK, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], 0);
-  ASSERT_EQ(reader.recover_type[1], 0);
-  ASSERT_EQ(reader.recover_type[2], 0);
-  ASSERT_EQ(reader.recover_type[3], 0);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(104, reader.getPosition());
+  ASSERT_EQ(IN_MASK, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), 0);
+  ASSERT_EQ(reader.getRecoverType(1), 0);
+  ASSERT_EQ(reader.getRecoverType(2), 0);
+  ASSERT_EQ(reader.getRecoverType(3), 0);
 
   // "1\t105\tA\tT\t0\t2\t1\t1\t1\n"  in mask, 0, 2 override
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("1", reader.chromosome);
-  ASSERT_EQ(105, reader.position);
-  ASSERT_EQ(IN_MASK, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], RECOVER_0_2);
-  ASSERT_EQ(reader.recover_type[1], 0);
-  ASSERT_EQ(reader.recover_type[2], 0);
-  ASSERT_EQ(reader.recover_type[3], 0);
+  ASSERT_EQ("1", reader.getChromosome());
+  ASSERT_EQ(105, reader.getPosition());
+  ASSERT_EQ(IN_MASK, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), RECOVER_0_2);
+  ASSERT_EQ(reader.getRecoverType(1), 0);
+  ASSERT_EQ(reader.getRecoverType(2), 0);
+  ASSERT_EQ(reader.getRecoverType(3), 0);
 
   // "2\t125\tA\tT\t0\t2\t2\t1\t1\n" change chromosome
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("2", reader.chromosome);
-  ASSERT_EQ(125, reader.position);
-  ASSERT_EQ(0, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], 0);
-  ASSERT_EQ(reader.recover_type[1], 0);
-  ASSERT_EQ(reader.recover_type[2], 0);
-  ASSERT_EQ(reader.recover_type[3], 0);
+  ASSERT_EQ("2", reader.getChromosome());
+  ASSERT_EQ(125, reader.getPosition());
+  ASSERT_EQ(0, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), 0);
+  ASSERT_EQ(reader.getRecoverType(1), 0);
+  ASSERT_EQ(reader.getRecoverType(2), 0);
+  ASSERT_EQ(reader.getRecoverType(3), 0);
 
   // "3\t126\tA\tT\t0\t2\t2\t2\t2\n" change chrom, 0/2 override check
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("3", reader.chromosome);
-  ASSERT_EQ(126, reader.position);
-  ASSERT_EQ(MAF_HIGH, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], RECOVER_0_2);
-  ASSERT_EQ(reader.recover_type[1], RECOVER_0_2);
-  ASSERT_EQ(reader.recover_type[2], RECOVER_0_2);
-  ASSERT_EQ(reader.recover_type[3], RECOVER_0_2);
+  ASSERT_EQ("3", reader.getChromosome());
+  ASSERT_EQ(126, reader.getPosition());
+  ASSERT_EQ(MAF_HIGH, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), RECOVER_0_2);
+  ASSERT_EQ(reader.getRecoverType(1), RECOVER_0_2);
+  ASSERT_EQ(reader.getRecoverType(2), RECOVER_0_2);
+  ASSERT_EQ(reader.getRecoverType(3), RECOVER_0_2);
 
   // "4\t136\tA\tT\t0\t2\t2\t2\t2\n" in mask and maf high
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("4", reader.chromosome);
-  ASSERT_EQ(136, reader.position);
-  ASSERT_EQ(IN_MASK | MAF_HIGH, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], RECOVER_0_2);
-  ASSERT_EQ(reader.recover_type[1], RECOVER_0_2);
-  ASSERT_EQ(reader.recover_type[2], RECOVER_0_2);
-  ASSERT_EQ(reader.recover_type[3], RECOVER_0_2);
+  ASSERT_EQ("4", reader.getChromosome());
+  ASSERT_EQ(136, reader.getPosition());
+  ASSERT_EQ(IN_MASK | MAF_HIGH, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), RECOVER_0_2);
+  ASSERT_EQ(reader.getRecoverType(1), RECOVER_0_2);
+  ASSERT_EQ(reader.getRecoverType(2), RECOVER_0_2);
+  ASSERT_EQ(reader.getRecoverType(3), RECOVER_0_2);
 
   // "4\t137\tA\tT\t2\t0\t0\t0\t0\n" in mask and maf low
   ASSERT_TRUE(reader.update());
-  ASSERT_EQ("4", reader.chromosome);
-  ASSERT_EQ(137, reader.position);
-  ASSERT_EQ(IN_MASK | MAF_LOW, reader.line_filtering);
-  ASSERT_EQ(reader.recover_type[0], RECOVER_2_0);
-  ASSERT_EQ(reader.recover_type[1], RECOVER_2_0);
-  ASSERT_EQ(reader.recover_type[2], RECOVER_2_0);
-  ASSERT_EQ(reader.recover_type[3], RECOVER_2_0);
+  ASSERT_EQ("4", reader.getChromosome());
+  ASSERT_EQ(137, reader.getPosition());
+  ASSERT_EQ(IN_MASK | MAF_LOW, reader.getLineFilter());
+  ASSERT_EQ(reader.getRecoverType(0), RECOVER_2_0);
+  ASSERT_EQ(reader.getRecoverType(1), RECOVER_2_0);
+  ASSERT_EQ(reader.getRecoverType(2), RECOVER_2_0);
+  ASSERT_EQ(reader.getRecoverType(3), RECOVER_2_0);
 
   // eof
   ASSERT_FALSE(reader.update());

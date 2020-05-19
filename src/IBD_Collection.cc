@@ -9,8 +9,9 @@ void IBD_Collection::initialize(const Genotype_Reader &reader) {
 void IBD_Collection::update(const Genotype_Reader &reader,
                             std::ostream &output) {
   for (unsigned int i = 0; i < IBDs.size(); i++) {
-    IBDs[i].add_lod(reader.chromosome, reader.position, reader.lod_scores[i],
-                    reader.line_filtering | reader.recover_type[i], output);
+    IBDs[i].add_lod(reader.getChromosome(), reader.getPosition(),
+                    reader.getLodScore(i),
+                    reader.getLineFilter() | reader.getRecoverType(i), output);
   }
 }
 

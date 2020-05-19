@@ -110,10 +110,10 @@ int main(int argc, char *argv[]) {
       if (!include_ninfs) continue;
     }
 
-    output << reader.chromosome << '\t' << reader.position << '\t' << reader.ref
-           << '\t' << reader.alt << '\t' << reader.archaic << '\t'
-           << reader.allele_frequency << '\t' << lods[0] << '\t' << lods[1]
-           << '\t' << lods[2] << '\n';
+    output << reader.getChromosome() << '\t' << reader.getPosition() << '\t'
+           << reader.getRef() << '\t' << reader.getAlt() << '\t'
+           << reader.getArchaic() << '\t' << reader.getAlleleFrequency() << '\t'
+           << lods[0] << '\t' << lods[1] << '\t' << lods[2] << '\n';
   }
 
   genotype.close();
