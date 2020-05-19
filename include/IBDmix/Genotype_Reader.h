@@ -39,8 +39,10 @@ class Genotype_Reader {
   bool update(void);
 
   const std::vector<std::string> &get_samples() const;
-  const std::vector<double> &get_lods() const;
   int num_samples() const { return sample_mapper.size(); }
+  double calculate_lod(char modern) const {
+    return calculator.calculate_lod(modern);
+  }
 
  private:
   std::istream *genotype;

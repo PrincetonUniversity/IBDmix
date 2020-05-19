@@ -43,7 +43,9 @@ class IBD_Stack {
   void getSegmentFrom(IBD_Stack *other);
 
  private:
-  IBD_Node *end = nullptr, *start = nullptr, *top = nullptr;
+  IBD_Node *end = nullptr;
+  IBD_Node *start = nullptr;
+  IBD_Node *top = nullptr;
 };
 
 std::ostream &operator<<(std::ostream &strm, const IBD_Stack &stack);

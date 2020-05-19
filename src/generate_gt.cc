@@ -52,11 +52,12 @@ int main(int argc, char *argv[]) {
       recheck = false;
 
       // less than position, copy archaic and use modern blank line
-      if (archaic.position < modern.position) {
+      if (archaic.getPosition() < modern.getPosition()) {
         // skip lines with no informative archaic GT
         bool nonzero = false;
-        for (int i = 0; i < 2 * archaic.number_individuals; i += 2)
-          if (archaic.genotypes[i] != '0') {
+        auto gen = archaic.getGenotypes();
+        for (int i = 0; i < 2 * archaic.getCount(); i += 2)
+          if (gen[i] != '0') {
             nonzero = true;
             break;
           }
@@ -64,22 +65,25 @@ int main(int argc, char *argv[]) {
         // found at least one informative archaic site
         if (nonzero) {
           // output archaic information and blank modern
-          output << archaic.chromosome << '\t' << archaic.position << '\t'
-                 << archaic.reference << '\t' << archaic.alternative << '\t';
-          output << archaic.genotypes;
-          output << modern.blank_line;
+          output << archaic.getChromosome() << '\t' << archaic.getPosition()
+                 << '\t' << archaic.getReference() << '\t'
+                 << archaic.getAlternative() << '\t';
+          output << archaic.getGenotypes();
+          output << modern.getBlank();
           output << "\n";
         }
         // equal, have to check other conditions to write
-      } else if (archaic.position == modern.position) {
+      } else if (archaic.getPosition() == modern.getPosition()) {
         // check alleles are matching
-        if (modern.isvalid && archaic.reference == modern.reference &&
-            (archaic.alternative == '.' ||
-             archaic.alternative == modern.alternative)) {
-          output << archaic.chromosome << '\t' << archaic.position << '\t'
-                 << archaic.reference << '\t' << modern.alternative << '\t';
-          output << archaic.genotypes;
-          output << modern.genotypes;
+        if (modern.isValid() &&
+            archaic.getReference() == modern.getReference() &&
+            (archaic.getAlternative() == '.' ||
+             archaic.getAlternative() == modern.getAlternative())) {
+          output << archaic.getChromosome() << '\t' << archaic.getPosition()
+                 << '\t' << archaic.getReference() << '\t'
+                 << modern.getAlternative() << '\t';
+          output << archaic.getGenotypes();
+          output << modern.getGenotypes();
           output << "\n";
         }
         // advance both to match legacy version

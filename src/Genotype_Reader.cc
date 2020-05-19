@@ -114,7 +114,3 @@ bool Genotype_Reader::find_frequency() {
 const std::vector<std::string> &Genotype_Reader::get_samples() const {
   return sample_mapper.samples;
 }
-
-const std::vector<double> &Genotype_Reader::get_lods() const {
-  return calculator.lod_cache;
-}

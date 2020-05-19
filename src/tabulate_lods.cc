@@ -86,8 +86,10 @@ int main(int argc, char *argv[]) {
   int num_samples = reader.initialize(sample, archaic);
   if (sample.is_open()) sample.close();
 
+  std::vector<double> lods(3);
+  const char *moderns = "012";
   while (reader.update()) {
-    auto lods = reader.get_lods();
+    for (int i = 0; i < 3; ++i) lods[i] = reader.calculate_lod(moderns[i]);
     // all sites are 0
     if (!include_zeros && lods[0] == 0 && lods[1] == 0 && lods[2] == 0)
       continue;

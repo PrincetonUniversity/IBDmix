@@ -1,8 +1,6 @@
 #include <vector>
 class LodCalculator {
  public:
-  std::vector<double> lod_cache;
-
   LodCalculator(double archaic_error = 0.01, double modern_error_max = 0.002,
                 double modern_error_proportion = 2, double minesp = 1e-200)
       : archaic_error(archaic_error),
@@ -20,4 +18,5 @@ class LodCalculator {
   double modern_error_max;
   double modern_error_proportion;
   double minesp;
+  std::vector<double> lod_cache;
 };

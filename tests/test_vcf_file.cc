@@ -28,36 +28,36 @@ TEST(VcfFile, CanHandleArchaic) {
   std::ostringstream output;
   VCF_File vcf(&vcf_file, output);
   ASSERT_STREQ(output.str().c_str(), "\tAltaiNea");
-  ASSERT_EQ(vcf.number_individuals, 1);
+  ASSERT_EQ(vcf.getCount(), 1);
 
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 10001);
-  ASSERT_EQ(vcf.reference, 'T');
-  ASSERT_EQ(vcf.alternative, '.');
-  ASSERT_EQ(vcf.genotypes[0], '0');
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 10001);
+  ASSERT_EQ(vcf.getReference(), 'T');
+  ASSERT_EQ(vcf.getAlternative(), '.');
+  ASSERT_EQ(vcf.getGenotypes()[0], '0');
 
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 10002);
-  ASSERT_EQ(vcf.reference, 'A');
-  ASSERT_EQ(vcf.alternative, '.');
-  ASSERT_EQ(vcf.genotypes[0], '0');
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 10002);
+  ASSERT_EQ(vcf.getReference(), 'A');
+  ASSERT_EQ(vcf.getAlternative(), '.');
+  ASSERT_EQ(vcf.getGenotypes()[0], '0');
 
   // skip multiple ref/alt and no genotypes
   ASSERT_TRUE(vcf.update(true));
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 10006);
-  ASSERT_EQ(vcf.reference, 'C');
-  ASSERT_EQ(vcf.alternative, '.');
-  ASSERT_EQ(vcf.genotypes[0], '1');
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 10006);
+  ASSERT_EQ(vcf.getReference(), 'C');
+  ASSERT_EQ(vcf.getAlternative(), '.');
+  ASSERT_EQ(vcf.getGenotypes()[0], '1');
 
   ASSERT_TRUE(vcf.update(true));
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 10007);
-  ASSERT_EQ(vcf.reference, 'T');
-  ASSERT_EQ(vcf.alternative, '.');
-  ASSERT_EQ(vcf.genotypes[0], '2');
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 10007);
+  ASSERT_EQ(vcf.getReference(), 'T');
+  ASSERT_EQ(vcf.getAlternative(), '.');
+  ASSERT_EQ(vcf.getGenotypes()[0], '2');
 
   ASSERT_TRUE(!vcf.update(true));
 }
@@ -82,51 +82,51 @@ TEST(VcfFile, CanHandleModern) {
   std::ostringstream output;
   VCF_File vcf(&vcf_file, output);
   ASSERT_STREQ(output.str().c_str(), "\tI1\tI2\tI3\tI4\tI5");
-  ASSERT_EQ(vcf.number_individuals, 5);
+  ASSERT_EQ(vcf.getCount(), 5);
 
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 846687);
-  ASSERT_EQ(vcf.reference, 'C');
-  ASSERT_EQ(vcf.alternative, 'T');
-  ASSERT_EQ(vcf.genotypes[0], '0');
-  ASSERT_EQ(vcf.genotypes[2], '0');
-  ASSERT_EQ(vcf.genotypes[4], '0');
-  ASSERT_EQ(vcf.genotypes[6], '0');
-  ASSERT_EQ(vcf.genotypes[8], '0');
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 846687);
+  ASSERT_EQ(vcf.getReference(), 'C');
+  ASSERT_EQ(vcf.getAlternative(), 'T');
+  ASSERT_EQ(vcf.getGenotypes()[0], '0');
+  ASSERT_EQ(vcf.getGenotypes()[2], '0');
+  ASSERT_EQ(vcf.getGenotypes()[4], '0');
+  ASSERT_EQ(vcf.getGenotypes()[6], '0');
+  ASSERT_EQ(vcf.getGenotypes()[8], '0');
 
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 846688);
-  ASSERT_EQ(vcf.reference, 'G');
-  ASSERT_EQ(vcf.alternative, 'A');
-  ASSERT_EQ(vcf.genotypes[0], '1');
-  ASSERT_EQ(vcf.genotypes[2], '2');
-  ASSERT_EQ(vcf.genotypes[4], '1');
-  ASSERT_EQ(vcf.genotypes[6], '0');
-  ASSERT_EQ(vcf.genotypes[8], '9');
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 846688);
+  ASSERT_EQ(vcf.getReference(), 'G');
+  ASSERT_EQ(vcf.getAlternative(), 'A');
+  ASSERT_EQ(vcf.getGenotypes()[0], '1');
+  ASSERT_EQ(vcf.getGenotypes()[2], '2');
+  ASSERT_EQ(vcf.getGenotypes()[4], '1');
+  ASSERT_EQ(vcf.getGenotypes()[6], '0');
+  ASSERT_EQ(vcf.getGenotypes()[8], '9');
 
   // indels
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 846742);
-  ASSERT_FALSE(vcf.isvalid);
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 846742);
+  ASSERT_FALSE(vcf.isValid());
 
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 846758);
-  ASSERT_FALSE(vcf.isvalid);
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 846758);
+  ASSERT_FALSE(vcf.isValid());
 
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "1");
-  ASSERT_EQ(vcf.position, 846808);
-  ASSERT_EQ(vcf.reference, 'C');
-  ASSERT_EQ(vcf.alternative, 'T');
-  ASSERT_EQ(vcf.genotypes[0], '0');
-  ASSERT_EQ(vcf.genotypes[2], '0');
-  ASSERT_EQ(vcf.genotypes[4], '1');
-  ASSERT_EQ(vcf.genotypes[6], '0');
-  ASSERT_EQ(vcf.genotypes[8], '0');
+  ASSERT_EQ(vcf.getChromosome(), "1");
+  ASSERT_EQ(vcf.getPosition(), 846808);
+  ASSERT_EQ(vcf.getReference(), 'C');
+  ASSERT_EQ(vcf.getAlternative(), 'T');
+  ASSERT_EQ(vcf.getGenotypes()[0], '0');
+  ASSERT_EQ(vcf.getGenotypes()[2], '0');
+  ASSERT_EQ(vcf.getGenotypes()[4], '1');
+  ASSERT_EQ(vcf.getGenotypes()[6], '0');
+  ASSERT_EQ(vcf.getGenotypes()[8], '0');
 
   ASSERT_TRUE(!vcf.update());
 }
@@ -144,31 +144,31 @@ TEST(VcfFile, CanParseComplexFormat) {
   std::ostringstream output;
   VCF_File vcf(&vcf_file, output);
   ASSERT_STREQ(output.str().c_str(), "\tI1\tI2\tI3\tI4\tI5");
-  ASSERT_EQ(vcf.number_individuals, 5);
+  ASSERT_EQ(vcf.getCount(), 5);
 
   // ends with tab, GT at front
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "3");
-  ASSERT_EQ(vcf.position, 10);
-  ASSERT_EQ(vcf.reference, 'C');
-  ASSERT_EQ(vcf.alternative, 'G');
-  ASSERT_EQ(vcf.genotypes[0], '1');
-  ASSERT_EQ(vcf.genotypes[2], '1');
-  ASSERT_EQ(vcf.genotypes[4], '1');
-  ASSERT_EQ(vcf.genotypes[6], '1');
-  ASSERT_EQ(vcf.genotypes[8], '9');
+  ASSERT_EQ(vcf.getChromosome(), "3");
+  ASSERT_EQ(vcf.getPosition(), 10);
+  ASSERT_EQ(vcf.getReference(), 'C');
+  ASSERT_EQ(vcf.getAlternative(), 'G');
+  ASSERT_EQ(vcf.getGenotypes()[0], '1');
+  ASSERT_EQ(vcf.getGenotypes()[2], '1');
+  ASSERT_EQ(vcf.getGenotypes()[4], '1');
+  ASSERT_EQ(vcf.getGenotypes()[6], '1');
+  ASSERT_EQ(vcf.getGenotypes()[8], '9');
 
   // GT at end
   ASSERT_TRUE(vcf.update());
-  ASSERT_EQ(vcf.chromosome, "3");
-  ASSERT_EQ(vcf.position, 11);
-  ASSERT_EQ(vcf.reference, 'C');
-  ASSERT_EQ(vcf.alternative, 'G');
-  ASSERT_EQ(vcf.genotypes[0], '1');
-  ASSERT_EQ(vcf.genotypes[2], '1');
-  ASSERT_EQ(vcf.genotypes[4], '1');
-  ASSERT_EQ(vcf.genotypes[6], '1');
-  ASSERT_EQ(vcf.genotypes[8], '9');
+  ASSERT_EQ(vcf.getChromosome(), "3");
+  ASSERT_EQ(vcf.getPosition(), 11);
+  ASSERT_EQ(vcf.getReference(), 'C');
+  ASSERT_EQ(vcf.getAlternative(), 'G');
+  ASSERT_EQ(vcf.getGenotypes()[0], '1');
+  ASSERT_EQ(vcf.getGenotypes()[2], '1');
+  ASSERT_EQ(vcf.getGenotypes()[4], '1');
+  ASSERT_EQ(vcf.getGenotypes()[6], '1');
+  ASSERT_EQ(vcf.getGenotypes()[8], '9');
 
   // no GT in format
   ASSERT_THROW(vcf.update(), std::invalid_argument);
