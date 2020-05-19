@@ -59,25 +59,25 @@ void Genotype_Reader::process_line_buffer(bool selected) {
   // the lod_scores array with appropriate values
 
   // throughout, *2 to skip tabs
-  archaic = buffer[sample_mapper.archaic_index * 2];
+  archaic = buffer[sample_mapper.getArchaicIndex() * 2];
   selected &= find_frequency();
 
   calculator.update_lod_cache(archaic, allele_frequency, selected);
 
   for (int i = 0; i < sample_mapper.size(); i++) {
     lod_scores[i] =
-        calculator.calculate_lod(buffer[sample_mapper.sample_to_index[i] * 2]);
+        calculator.calculate_lod(buffer[sample_mapper.getSample(i) * 2]);
     recover_type[i] = 0;
   }
 
   // udpate recover type
   if (!selected && archaic == '0') {
     for (int i = 0; i < sample_mapper.size(); i++)
-      if (buffer[sample_mapper.sample_to_index[i] * 2] == '2')
+      if (buffer[sample_mapper.getSample(i) * 2] == '2')
         recover_type[i] = RECOVER_0_2;
   } else if (!selected && archaic == '2') {
     for (int i = 0; i < sample_mapper.size(); i++)
-      if (buffer[sample_mapper.sample_to_index[i] * 2] == '0')
+      if (buffer[sample_mapper.getSample(i) * 2] == '0')
         recover_type[i] = RECOVER_2_0;
   }
 }
@@ -90,7 +90,7 @@ bool Genotype_Reader::find_frequency() {
   char current;
   bool select = true;
   for (int i = 0; i < sample_mapper.size(); i++)
-    if ((current = buffer[sample_mapper.sample_to_index[i] * 2]) != '9') {
+    if ((current = buffer[sample_mapper.getSample(i) * 2]) != '9') {
       total_counts += 2;
       alt_counts += current - '0';
     }
@@ -112,5 +112,5 @@ bool Genotype_Reader::find_frequency() {
 }
 
 const std::vector<std::string> &Genotype_Reader::get_samples() const {
-  return sample_mapper.samples;
+  return sample_mapper.getSamples();
 }
