@@ -40,6 +40,15 @@ rule all:
         all_input
 
 rule make_executables:
+    input:
+        [os.path.join(paths['source_root'], 'src', f)
+                for f in os.listdir(os.path.join(paths['source_root'], 'src'))
+                if os.path.join(paths['source_root'], 'src', f)],
+        [os.path.join(paths['source_root'], 'include/IBDmix', f)
+                for f in os.listdir(os.path.join(paths['source_root'],
+                    'include/IBDmix'))
+                if os.path.join(paths['source_root'], 'include/IBDmix', f)]
+
     output:
         expand(paths['exe'], exe=exes)
 

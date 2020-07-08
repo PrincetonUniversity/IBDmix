@@ -37,8 +37,10 @@ int main(int argc, char *argv[]) {
       ->check(CLI::ExistingFile);
 
   int ma_threshold = 1;
-  double LOD_threshold = 3.0, archaic_error = 0.01, modern_error_max = 0.0025,
-         modern_error_prop = 2;
+  double LOD_threshold = 3.0;
+  double archaic_error = 0.01;
+  double modern_error_max = 0.0025;
+  double modern_error_prop = 2;
   // if output of should include additional stats about each region
   bool more_stats = false;
   bool inclusive_end = false;

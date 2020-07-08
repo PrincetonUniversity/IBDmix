@@ -61,6 +61,8 @@ bool VCF_File::update(bool skip_non_informative) {
 }
 
 bool VCF_File::read_line(bool skip_non_informative) {
+  // return true when the line is valid.  Only valid lines will yield from
+  // update
   isvalid = true;
   if (!std::getline(*input, buffer)) {
     chromosome = "-";
@@ -68,6 +70,7 @@ bool VCF_File::read_line(bool skip_non_informative) {
   }
   iss.clear();
   iss.str(buffer);
+  // TODO report error on failure
   if (!(iss >> chromosome && iss >> position)) return false;
 
   // read in ref and alt alleles, skipping if > 1 character

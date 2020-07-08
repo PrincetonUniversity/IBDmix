@@ -162,7 +162,8 @@ bedtools needs to be installed and included in PATH, otherwise run snakemake
 with the `--use-singularity` flag to download and use a docker container instead.
 
 If a cmake module is present, adding the --use-envmodules will activate it prior
-to compilation.
+to compilation.  Due to the dependence on envmodules, the snakefile requires
+snakemake >= 5.10.
 
 #### Important Configuration Options
 > A note on wildcards.
