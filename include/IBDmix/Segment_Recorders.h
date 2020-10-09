@@ -1,36 +1,55 @@
 #pragma once
 
 #include <iostream>
-#include <iomanip>
+#include <vector>
+
 #include "IBDmix/IBD_Stack.h"
-#include "IBDmix/Genotype_Reader.h"
 
-class Recorder{
-    public:
-        virtual void writeHeader(std::ostream &output) const = 0;
-        virtual void initializeSegment() = 0;
-        virtual void record(IBD_Node *node) = 0;
-        virtual void report(std::ostream &output) const = 0;
+class Recorder {
+ public:
+  virtual void writeHeader(std::ostream &output) const = 0;
+  virtual void initializeSegment() = 0;
+  virtual void record(const IBD_Node *node) = 0;
+  virtual void report(std::ostream &output) const = 0;
 };
 
-class CountRecorder : public Recorder{
-    private:
-        int in_mask, maf_low, maf_high, rec_2_0,
-            rec_0_2, sites, both, positive_lod;
-    public:
-        void writeHeader(std::ostream &output) const;
-        void initializeSegment();
-        void record(IBD_Node *node);
-        void report(std::ostream &output) const;
+class CountRecorder : public Recorder {
+ public:
+  void writeHeader(std::ostream &output) const override;
+  void initializeSegment() override;
+  void record(const IBD_Node *node) override;
+  void report(std::ostream &output) const override;
+
+ private:
+  int in_mask;
+  int maf_low;
+  int maf_high;
+  int rec_2_0;
+  int rec_0_2;
+  int sites;
+  int both;
+  int positive_lod;
+  int negative_lod;
 };
 
-class SiteRecorder : public Recorder{
-    private:
-        std::vector<unsigned long int> positions;
+class SiteRecorder : public Recorder {
+ public:
+  void writeHeader(std::ostream &output) const override;
+  void initializeSegment() override;
+  void record(const IBD_Node *node) override;
+  void report(std::ostream &output) const override;
 
-    public:
-        void writeHeader(std::ostream &output) const;
-        void initializeSegment();
-        void record(IBD_Node *node);
-        void report(std::ostream &output) const;
+ private:
+  std::vector<uint64_t> positions;
+};
+
+class LODRecorder : public Recorder {
+ public:
+  void writeHeader(std::ostream &output) const override;
+  void initializeSegment() override;
+  void record(const IBD_Node *node) override;
+  void report(std::ostream &output) const override;
+
+ private:
+  std::vector<double> LODs;
 };

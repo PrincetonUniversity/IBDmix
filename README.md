@@ -110,6 +110,7 @@ A switch to report additional region-level statistics.
 Additional columns include:
   - sites: total number of sites in genotype file in region
   - positive_lods: number of sites with positive LOD scores in the region
+  - negative_lods: number of sites with negative LOD scores in the region
   - mask\_and\_maf: sites which are both in the masked region
        and fail MAF cutoff
   - in\_mask: sites in the mask but pass MAF
@@ -121,6 +122,9 @@ Additional columns include:
        2 in modern
 - __-w, --write-snps__
 Include positions with positive LOD scores as a comma-separated list.
+- __--write-lods__
+Include LOD scores of positive sites as a comma-separated list.  Same order as
+write-snps output (e.g. zip the two entries to get position/lod values).
 
 #### Summary.sh
 Once a run of `ibdmix` completes, it is informative to filter the results
@@ -163,7 +167,8 @@ bedtools needs to be installed and included in PATH, otherwise run snakemake
 with the `--use-singularity` flag to download and use a docker container instead.
 
 If a cmake module is present, adding the --use-envmodules will activate it prior
-to compilation.
+to compilation.  Due to the dependence on envmodules, the snakefile requires
+snakemake >= 5.10.
 
 #### Important Configuration Options
 > A note on wildcards.

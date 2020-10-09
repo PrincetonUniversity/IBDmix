@@ -38,6 +38,27 @@ if(GIT_FOUND AND EXISTS "${IBDmix_SOURCE_DIR}/.git")
 
 else()
     set(IBDMIX_GIT_VERSION "unknown")
+    message(STATUS "Downloading dependencies...")
+    if( NOT EXISTS "${IBDmix_SOURCE_DIR}/extern/CLI11/CMakeLists.txt")
+        file(DOWNLOAD
+            https://github.com/CLIUtils/CLI11/archive/b9a2f320b912aae623c4acddea06cba399b98654.zip
+            "${IBDmix_SOURCE_DIR}/extern/CLI11.zip"
+            SHOW_PROGRESS
+            EXPECTED_HASH MD5=222245b96453401aa366328e398ae1ad)
+        message(STATUS "Extracting CLI11")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar -xf
+            "${IBDmix_SOURCE_DIR}/extern/CLI11.zip"
+            WORKING_DIRECTORY
+            "${IBDmix_SOURCE_DIR}/extern/"
+            )
+        file(RENAME
+            "${IBDmix_SOURCE_DIR}/extern/CLI11-b9a2f320b912aae623c4acddea06cba399b98654/"
+            "${IBDmix_SOURCE_DIR}/extern/CLI11/"
+            )
+        file(REMOVE
+            "${IBDmix_SOURCE_DIR}/extern/CLI11.zip"
+            )
+    endif()
 endif()
 
 if( NOT EXISTS "${IBDmix_SOURCE_DIR}/extern/CLI11/CMakeLists.txt")

@@ -8,9 +8,10 @@ paths:
     modern_vcf: "/tigress/AKEY/akey_vol2/wqfu/nobackup/1KGP/\
                  ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5a\
                  .20130502.genotypes.vcf.gz"
-    archaic_vcf: "/tigress/limingli/data/old-Denisova/gz/chr{chrom}.vcf.gz"
+    archaic_vcf: "/tigress/limingli/data/old-Altai/gz/chr{chrom}.vcf.gz"
     # if removed will use all samples
-    sample_file: /tigress/tcomi/public_html/ibdmix_tests/cell_data/samples/{population}.txt
+    sample_file: "/tigress/tcomi/public_html/ibdmix_tests/cell_data\
+                  /samples/{population}.txt"
     # if removed will use all positions
     mask_file: "/tigress/AKEY/akey_vol1/home/luchenuw/data/FilterBed/\
                 FullVersionforAltai2013_1KGP3strict/\
@@ -40,11 +41,11 @@ IBDmix:
         #--inclusive-end
 
     # True to calculate total masked bases and largest masked region
-    mask_stats: True
+    # mask_stats: True
 
     # remove for no summary, add 0s for no filtering
-    summary_lod:
-        - 4
+    # summary_lod:
+    #     - 4
 
     summary_length:
         - 50000

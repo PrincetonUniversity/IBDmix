@@ -39,24 +39,34 @@ rule all:
         all_input
 
 rule make_executables:
+    input:
+        [os.path.join(paths['source_root'], 'src', f)
+                for f in os.listdir(os.path.join(paths['source_root'], 'src'))
+                if os.path.join(paths['source_root'], 'src', f)],
+        [os.path.join(paths['source_root'], 'include/IBDmix', f)
+                for f in os.listdir(os.path.join(paths['source_root'],
+                    'include/IBDmix'))
+                if os.path.join(paths['source_root'], 'include/IBDmix', f)]
+
     output:
         expand(paths['exe'], exe=exes)
 
     params:
-        targets=expand(f"{paths['source_root']}build/src/{{exe}}", exe=exes)
+        targets=expand(f"{paths['source_root']}snake_build/src/{{exe}}",
+                exe=exes)
 
     envmodules:
         config['cmake_module']
 
     shell:
         '''
-        mkdir -p {paths[source_root]}build
-        cd {paths[source_root]}build
+        mkdir -p {paths[source_root]}snake_build
+        cd {paths[source_root]}snake_build
         cmake .. -DCMAKE_BUILD_TYPE=Release
         cmake --build .
         for f in {params.targets}; do mv $f {paths[exe_root]} ; done
         cd ..
-        rm -rf build
+        rm -rf snake_build
         '''
 
 rule generate_gt:
@@ -135,7 +145,7 @@ rule ibd_mask_bed:
             'BEGIN{{OFS="\\t"}} '
             'NR==FNR{{'  # build chr,start,end to max and sum masked
                 'sum[$1 "." $2 "." $3] += $7; '
-                'if(max[$1 "." $2 "." $3] < $7){{ '
+                'if(max[$1 "." $2 "." $3] <= $7){{ '
                     'max[$1 "." $2 "." $3] = $7 }} '
                 'next; }} '
             'FNR==1{{ print $0, "total_masked", "largest_mask" ; next}} '

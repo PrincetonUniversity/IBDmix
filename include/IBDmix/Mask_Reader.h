@@ -1,16 +1,18 @@
 #pragma once
+
 #include <iostream>
 #include <sstream>
-#include <string>
 #include <stdexcept>
+#include <string>
 
-class Mask_Reader{
-    std::string chromosome = "";
-    unsigned long start, end;
-    std::istream *mask = nullptr;
-    void readline();
+class Mask_Reader {
+ public:
+  explicit Mask_Reader(std::istream *mask) : mask(mask) { readline(); }
+  bool in_mask(const std::string &chrom, uint64_t position);
 
-public:
-    Mask_Reader(std::istream *mask) : mask(mask) {readline();};
-    bool in_mask(const std::string &chrom, unsigned long position);
+ private:
+  std::string chromosome = "";
+  uint64_t start, end;
+  std::istream *mask = nullptr;
+  void readline();
 };
