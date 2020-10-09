@@ -53,7 +53,8 @@ rule make_executables:
         expand(paths['exe'], exe=exes)
 
     params:
-        targets=expand(f"{paths['source_root']}build/src/{{exe}}", exe=exes)
+        targets=expand(f"{paths['source_root']}snake_build/src/{{exe}}",
+                exe=exes)
 
     envmodules:
         config['cmake_module']
