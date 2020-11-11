@@ -21,6 +21,8 @@ if len(populations) == 0:
     paths['ibd_summary'] = paths['ibd_summary'].replace('{population}', 'ALL')
     populations = ['ALL']
 
+include: 'ibdmix.smk'
+
 def all_input(wildcards):
     params = {'chrom': chromosomes}
     path = paths['ibd_output']
@@ -38,92 +40,6 @@ def all_input(wildcards):
 rule all:
     input:
         all_input
-
-rule make_executables:
-    input:
-        [os.path.join(paths['source_root'], 'src', f)
-                for f in os.listdir(os.path.join(paths['source_root'], 'src'))
-                if os.path.join(paths['source_root'], 'src', f)],
-        [os.path.join(paths['source_root'], 'include/IBDmix', f)
-                for f in os.listdir(os.path.join(paths['source_root'],
-                    'include/IBDmix'))
-                if os.path.join(paths['source_root'], 'include/IBDmix', f)]
-
-    output:
-        expand(paths['exe'], exe=exes)
-
-    params:
-        targets=expand(f"{paths['source_root']}snake_build/src/{{exe}}",
-                exe=exes)
-
-    envmodules:
-        config['cmake_module']
-
-    shell:
-        '''
-        mkdir -p {paths[source_root]}snake_build
-        cd {paths[source_root]}snake_build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
-        cmake --build .
-        for f in {params.targets}; do mv $f {paths[exe_root]} ; done
-        cd ..
-        rm -rf snake_build
-        '''
-
-rule generate_gt:
-    input:
-        modern=paths['modern_vcf'],
-        archaic=paths['archaic_vcf'],
-        exe=paths['exe'].format(exe='generate_gt')
-
-    output:
-        paths['genotype_file']
-
-    threads: 1
-
-    shell:
-        '{input.exe} '
-            '--archaic <(zcat {input.archaic}) '
-            '--modern <(zcat {input.modern}) '
-            '--output >(gzip > {output}) '
-
-def get_ibd_input(wildcards):
-    result = {'genotype': paths['genotype_file'].format(chrom=wildcards.chrom),
-              'exe': paths['exe'].format(exe='ibdmix')}
-
-    if 'population' in wildcards.keys() and 'sample_file' in paths:
-        result['samples'] = paths['sample_file'].format(
-            population=wildcards.population)
-
-    if 'mask_file' in paths:
-        result['mask'] = paths['mask_file'].format(chrom=wildcards.chrom)
-
-    return result
-
-def get_ibd_options(wildcards, input):
-    result = ''
-    if 'samples' in input.keys():
-        result += f'--sample {input.samples} '
-    if 'mask' in input.keys():
-        result += f'--mask {input.mask} '
-
-    return result
-
-rule ibdmix:
-    input:
-        unpack(get_ibd_input)
-
-    output:
-        paths['ibd_output']
-
-    params: options=get_ibd_options
-
-    shell:
-        '{input.exe} '
-            '--genotype <(zcat {input.genotype}) '
-            '--output >(gzip > {output}) '
-            '{params.options} '
-            '{config[IBDmix][options]} '
 
 def ibd_mask_bed_input(wildcards):
     return {
