@@ -1,0 +1,109 @@
+---
+cmake_module: 'cmake/3.x'
+
+paths:
+  working_directory: ""
+
+  metadata_1kg: 'samples_all.txt'
+  sample_file: 'samples/{population}.txt'
+
+  exe: 'executables/{exe}'
+
+  # thesee files are used for producing the masks
+  # included beds
+  altai_filter: "beds/altai.bed.bgz"
+  denisovan_filter: "beds/denisovan.bed.bgz"
+  bed_1kg: "beds/1kg.bed"
+  bed_1kg_processed: "beds/processed_1kg.bed"
+  included_regions: "beds/{sample_name}/included.bed"
+
+  # excluded beds
+  cpg_mask: "beds/cpg.bed"
+  seg_dups: "beds/dups.txt.gz"
+  seg_dups_bed: "beds/dups.bed"
+  mapability_mask: "beds/mapability.bed"
+  indel_mask: "beds/indels_{chrom}.bed"
+  excluded_regions: "beds/excluded.bed"
+
+  included_mask: "beds/{sample_name}/include_final.bed"
+
+  # for generating mapability mask
+  # source files
+  seqbility_root: "seqbility"
+  # data files
+  seqbility_temp: "/scratch/gpfs/tcomi/seqbility"
+  chrom_sizes: "reference/hg19.chrom_size.txt"
+  # do not remove '/split_'
+  split_fa: "{seqbility_temp}/split_{part}"
+  mapped_sai: "{seqbility_temp}/mapped_{part}.sai"
+  mapped_sam: "{seqbility_temp}/mapped_{part}.sam.gz"
+  raw_map_mask: "{seqbility_temp}/rawMask_35.fa"
+  map_mask: "{seqbility_temp}/mask_35_50.fa"
+  map_bed: "{seqbility_temp}/mask_35_50.bed"
+
+  # for generating cpg mask
+  cpg_temp: "/scratch/gpfs/tcomi/cpg"
+  syn_net: "{cpg_temp}/axt/{species}_{chrom}.gz"
+  # {chrom} must be last wildcard and separated by -, _ or . with gz extension
+  simple_snps: "{cpg_temp}/snps/{species}_{chrom}.gz"
+  cpg_temp_mask: "{cpg_temp}/cpg.unsorted.bed"
+
+  reference_genome: "reference/hg19.fa"
+  modern_vcf: "vcfs/modern/chrom_{chrom}.vcf.gz"
+  archaic_vcf: "vcfs/{sample_name}/chr_{chrom}.vcf.gz"
+
+  genotype_file: "genotype/{sample_name}_{chrom}.gz"
+  mask_file: "beds/{sample_name}/chr{chrom}.bed"
+
+  # if removed will use all positions
+  ibd_output: "ibd_raw/{sample_name}/{population}_{chrom}.gz"
+  ibd_bed: "ibd_bed/{sample_name}/{population}_{chrom}.gz"
+  ibd_summary: "ibd_summary/{sample_name}/{population}_{chrom}_{LOD}_{length}.gz"
+  combined_summary: "ibd_summary_combined/{sample_name}_{LOD}_{length}.txt"
+
+  # altai calls with afr denisovan removed
+  final_calls: "ibd_final/{LOD}_{length}.txt"
+
+urls:
+  metadata_1kg: "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/\
+                  20130502/integrated_call_samples_v3.20130502.ALL.panel"
+
+  reference_genome: "https://data.broadinstitute.org/snowman/hg19/\
+                     Homo_sapiens_assembly19.fasta"
+  modern_vcf: "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/\
+               ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5a\
+               .20130502.genotypes.vcf.gz"
+  altai_vcf: "http://cdna.eva.mpg.de/neandertal/altai/AltaiNeandertal/VCF\
+              /AltaiNea.hg19_1000g.{chrom}.mod.vcf.gz"
+  denisovan_vcf: "http://cdna.eva.mpg.de/neandertal/altai/Denisovan/\
+                  DenisovaPinky.hg19_1000g.{chrom}.mod.vcf.gz"
+
+  altai_filter: "https://bioinf.eva.mpg.de/altai_minimal_filters/\
+                 AltaiNea.map35_50.MQ30.Cov.indels.TRF.bed.bgz"
+  denisovan_filter: "https://bioinf.eva.mpg.de/altai_minimal_filters/\
+                     DenisovaPinky.map35_50.MQ30.Cov.indels.TRF.bed.bgz"
+  bed_1kg: "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/\
+            supporting/accessible_genome_masks/\
+            20140520.strict_mask.autosomes.bed"
+
+  seg_dups: "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/\
+             genomicSuperDups.txt.gz"
+  seqbility: "http://lh3lh3.users.sourceforge.net/download/\
+              seqbility-20091110.tar.bz2"
+  # this is separate to handle the species_upper
+  syn_net_url: "https://hgdownload.soe.ucsc.edu/goldenPath/hg19/\
+                vs{species_upper}/syntenicNet/\
+                chr{chrom}.hg19.{species}.synNet.axt.gz"
+
+containers:
+  bwa: "docker://biocontainers/bwa:v0.7.17_cv1"
+  bedtools: "docker://biocontainers/bedtools:2.25.0"
+  samtools: "docker://biocontainers/samtools:v1.7.0_cv4"
+
+IBDmix:
+  options: >
+      --LOD-threshold 4.0
+      --minor-allele-count-threshold 1
+      --archaic-error 0.01
+      --modern-error-max 0.002
+      --modern-error-proportion 2
