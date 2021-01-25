@@ -4,7 +4,9 @@ rule make_executables:
     input:
         [os.path.join(paths['source_root'], 'src', f)
                 for f in os.listdir(os.path.join(paths['source_root'], 'src'))
-                if os.path.join(paths['source_root'], 'src', f)],
+                if (os.path.join(paths['source_root'], 'src', f)
+                    and not f.endswith('.sh'))
+                ],
         [os.path.join(paths['source_root'], 'include/IBDmix', f)
                 for f in os.listdir(os.path.join(paths['source_root'],
                     'include/IBDmix'))
@@ -46,7 +48,7 @@ rule generate_gt:
     output:
         paths['genotype_file']
 
-    threads: 1
+    threads: 2
 
     shell:
         '{input.exe} '
@@ -59,11 +61,10 @@ def get_ibd_input(wildcards):
               'exe': paths['exe'].format(exe='ibdmix')}
 
     if 'population' in wildcards.keys() and 'sample_file' in paths:
-        result['samples'] = paths['sample_file'].format(
-            population=wildcards.population)
+        result['samples'] = paths['sample_file'].format(**wildcards)
 
     if 'mask_file' in paths:
-        result['mask'] = paths['mask_file'].format(chrom=wildcards.chrom)
+        result['mask'] = paths['mask_file'].format(**wildcards)
 
     return result
 
@@ -81,7 +82,7 @@ rule ibdmix:
         unpack(get_ibd_input)
 
     output:
-        paths['ibd_output']
+        temp(paths['ibd_output'])
 
     params: options=get_ibd_options
 
