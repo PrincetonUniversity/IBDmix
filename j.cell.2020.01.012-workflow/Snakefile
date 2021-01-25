@@ -1,0 +1,185 @@
+from collections import defaultdict
+
+configfile: 'config.yaml'
+paths = config['paths']
+workdir: paths['working_directory']
+
+paths['source_root'] = str(Path(workflow.snakefile).parents[1])
+exes = ['generate_gt', 'ibdmix']
+chromosomes = list(range(1,23))
+
+# substituted wildcards
+yaml_wildcards = ['seqbility_temp', 'cpg_temp']
+for wild in yaml_wildcards:
+    for key, filename in paths.items():
+        fmt = f'{{{wild}}}'
+        if fmt in filename:
+            paths[key] = filename.replace(fmt, paths[wild])
+
+include: 'generate_mask.smk'
+include: '../snakefiles/ibdmix.smk'
+
+def all_input(wildcards):
+    return expand(
+            paths['final_calls'],
+            LOD=4,
+            length=50000)
+
+rule all:
+    input:
+        all_input
+
+for key, url in config['urls'].items():
+    if key in paths:
+        rule:
+            output:
+                paths[key]
+            params:
+                url=url
+            resources:
+                wget_instances=1
+            shell:
+                'wget --quiet '
+                    '-O {output} '
+                    '{params.url} '
+
+rule all_downloads:
+    input:
+        expand([paths[key]
+                for key in config['urls'].keys()
+                if key in paths
+                ],
+                chrom=chromosomes),
+        expand(paths['syn_net'], chrom=chromosomes, species=cpg_species),
+        expand(paths['archaic_vcf'], chrom=chromosomes,
+                sample_name=('altai', 'denisovan'))
+
+rule all_genotypes:
+    # can be a better target for getting all vcfs as they are much smaller
+    input:
+        expand(paths['genotype_file'],
+                chrom=chromosomes,
+                sample_name=('altai', 'denisovan'))
+
+checkpoint split_sample_file:
+    input: paths['metadata_1kg']
+    output: directory(Path(paths['sample_file']).parents[0])
+    params:
+        sample_file=lambda wildcards: paths['sample_file']
+
+    run:
+        with open(input[0], 'r') as infile:
+            infile.readline()  # header
+            mappings = defaultdict(list)
+            for line in infile:
+                line = line.split()
+                mappings[line[1]].append(line[0])
+
+        os.makedirs(output[0], exist_ok=True)
+        for population, individuals in mappings.items():
+            with open(params.sample_file.format(population=population), 'w') \
+                    as outfile:
+                outfile.write('\n'.join(individuals))
+
+def download_vcf_params(wildcards):
+    if wildcards.sample_name == 'altai':
+        return config['urls']['altai_vcf'].format(**wildcards)
+    return config['urls']['denisovan_vcf'].format(**wildcards)
+
+rule download_vcf:
+    output:
+        temp(paths['archaic_vcf'])
+    params:
+        url=download_vcf_params
+    resources:
+        wget_instances=1
+    shell:
+        'wget --quiet '
+            '-O {output} '
+            '{params.url} '
+
+def summary_input(wildcards):
+    return {
+        'exe': paths['source_root']+'/src/summary.sh',
+        'ibd': paths['ibd_output']
+    }
+
+rule summary:
+    input:
+        unpack(summary_input)
+
+    output:
+        paths['ibd_summary']
+
+    shell:
+        'zcat {input.ibd} | '
+        '{input.exe} '
+            '{wildcards.length} '
+            '{wildcards.LOD} '
+            '{wildcards.population} '
+        '| gzip > {output} '
+
+def combine_input(wildcards):
+    samples_output = checkpoints.split_sample_file.get(**wildcards).output[0]
+
+    if wildcards.sample_name == 'denisovan':
+        populations = ['ESN', 'GWD', 'LWK', 'MSL', 'YRI']
+    else:
+        populations = [p for p in 
+                glob_wildcards(paths['sample_file']).population]
+
+    return expand(paths['ibd_summary'],
+                  sample_name=wildcards.sample_name,
+                  chrom=chromosomes,
+                  LOD=wildcards.LOD,
+                  length=wildcards.length,
+                  population=populations)
+
+rule combine:
+    input:
+        combine_input
+
+    output:
+        paths['combined_summary']
+
+    shell:
+        "zcat {input} | awk "
+            "'NR == 1 || !/^ID\tchr/ {{ print }}' "
+        " > {output} "
+
+rule filter_calls:
+    # filter altai calls (input[0]) by denisovan
+    # need to do some rearrangment of columns and mess with the header
+    input:
+        expand(paths['combined_summary'],
+                sample_name=('altai', 'denisovan'),
+                allow_missing=True)
+    output:
+        paths['final_calls']
+    singularity:
+        config['containers']['bedtools']
+    params:
+        awk_reorder=(
+            r'BEGIN {OFS="\t"} '
+            # move column 1 to  end
+            r'{for(i=2;i<=NF;++i) printf "%s\t", $i; print $1}'
+            ),
+        awk_recalc_length=(
+            r'BEGIN {OFS="\t"} '
+            # recalculate length after subtraction, filter for 50kB
+            r'{$5=$3-$2; if($5 >= 50000) {print $0}}'
+            )
+    shell:
+        'cat '
+        '<(head -n1 {input[0]} | awk \'{params.awk_reorder}\') '
+        '<(bedtools subtract '
+            '-a <('
+                'awk \'{params.awk_reorder}\' {input[0]} | '
+                'tail -n+2 | '
+                'sort -n -k1 -k2 -k3) '
+            '-b <('
+                'cut -f2-4 {input[1]} | '
+                'tail -n+2) '
+            '| awk \'{params.awk_recalc_length}\' '
+            '| sort -n -k1 -k2 -k3 ) '
+        '> {output}'

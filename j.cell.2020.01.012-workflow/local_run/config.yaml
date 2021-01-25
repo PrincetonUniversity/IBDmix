@@ -1,0 +1,3 @@
+---
+use-singularity: true
+resources: wget_instances=2
