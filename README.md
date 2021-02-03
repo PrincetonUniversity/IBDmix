@@ -1,3 +1,4 @@
+[![Open in Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7605004/tree/v1)
 ![](https://github.com/PrincetonUniversity/IBDmix/workflows/UnitTests/badge.svg)
 ![](https://github.com/PrincetonUniversity/IBDmix/workflows/AcceptanceTests/badge.svg)
 
