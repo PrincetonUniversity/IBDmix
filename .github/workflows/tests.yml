@@ -10,10 +10,6 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
-      - name: Cmake 3.13
-        uses: ./.github/actions/cmake_test
-        with:
-          version: 3.13.5
       - name: Cmake 3.14
         uses: ./.github/actions/cmake_test
         with:

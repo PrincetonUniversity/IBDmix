@@ -21,7 +21,7 @@ IBDmix consists of 3 steps:
 
 ### Compilation
 The provided CMake lists will automatically build the executables, but requires
-version 3.13 or greater, git and the repository to be cloned.  To use:
+version 3.14 or greater, git and the repository to be cloned.  To use:
 ```shell
 git clone https://github.com/PrincetonUniversity/IBDmix.git
 cd IBDmix
