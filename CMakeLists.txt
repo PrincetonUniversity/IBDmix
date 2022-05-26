@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(IBDmix VERSION 1.0.0
+project(IBDmix VERSION 1.0.1
               DESCRIPTION "Estimate introgression by IBD"
               LANGUAGES CXX)
 
@@ -22,10 +22,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(cli11)
-
-# Adding simple libraries
-# set(CLI11_TESTING OFF)
-# mark_as_advanced(CLI_CXX_STD CLI_EXAMPLES CLI_SINGLE_FILE CLI_SINGLE_FILE_TESTS CLI_TESTING)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTS)
   message(STATUS "TESTING NOW")

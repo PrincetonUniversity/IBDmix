@@ -1,0 +1,4 @@
+# exclude .gitignore and similar from the generated tarball
+.git*           export-ignore
+# exclude published workflow
+j.cell.2020.01.012-workflow  export-ignore
