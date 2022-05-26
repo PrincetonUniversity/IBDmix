@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(IBDmix VERSION 0.2
+project(IBDmix VERSION 1.0.0
               DESCRIPTION "Estimate introgression by IBD"
               LANGUAGES CXX)
 

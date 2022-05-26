@@ -48,3 +48,12 @@ add_executable(gt_lods tabulate_lods.cc)
 target_include_directories(gt_lods PUBLIC ../include)
 target_link_libraries(gt_lods
     genotype_reader CLI11::CLI11)
+
+install(
+  TARGETS
+    gt_lods
+    ibdmix
+    generate_gt
+  DESTINATION
+    bin
+  )
