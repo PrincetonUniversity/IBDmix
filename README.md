@@ -76,8 +76,14 @@ Name of archaic individual.  Must match column name.
 If not specified, taken as the first column of the
 genotype file (default output order for `generate_gt`).
 - __-r, --mask__
-Bed file of masked regions to **include** in the analysis.
-If not specified all sites are considered.
+Bed file of masked regions to **exclude** from the analysis.
+If not specified all sites are considered. There are some
+caveats where discordant homozygous SNPs still get considered
+even if they are within masked regions
+([more info](https://github.com/PrincetonUniversity/IBDmix/issues/10)).
+Additionally, IBDmix calls may occur around masked sites if there
+is a positive LOD score "leading into" a masked regions.
+
 - __-d, --LOD-threshold__
 Threshold value of log(odds) for emitting regions.
 Default: 3.0
