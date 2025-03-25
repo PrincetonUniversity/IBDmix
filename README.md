@@ -81,7 +81,7 @@ If not specified all sites are considered. There are some
 caveats where discordant homozygous SNPs still get considered
 even if they are within masked regions
 ([more info](https://github.com/PrincetonUniversity/IBDmix/issues/10)).
-Additionally, IBDmix calls may occur around masked sites if there
+Additionally, IBDmix calls may still include masked sites if there
 is a positive LOD score "leading into" a masked regions.
 
 - __-d, --LOD-threshold__
