@@ -14,7 +14,7 @@ fi
 
 echo "starting $test_type"
 
-url_base="http://tigress-web.princeton.edu/~tcomi/ibdmix_tests"
+url_base="http://tigress-web.princeton.edu/AKEY/ibdmix_tests"
 
 
 read_result() {
