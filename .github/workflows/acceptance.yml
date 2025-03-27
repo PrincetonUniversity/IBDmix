@@ -1,5 +1,5 @@
 name: AcceptanceTests
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 # TODO: generate_gt, generate_gt with tabs, population with mask, all with mask
 # all with no mask, inclusive end and stats
