@@ -3,22 +3,40 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
-    name: CTest
-    runs-on: ubuntu-latest
+    name: cmake and ctest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-22.04, macos-latest]
+        cmake-version: ['3.14', '3.15', '3.16']
+
     steps:
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '${{ matrix.cmake-version }}.x'
+
       - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-      - name: Cmake 3.14
-        uses: ./.github/actions/cmake_test
-        with:
-          version: 3.14.7
-      - name: Cmake 3.15
-        uses: ./.github/actions/cmake_test
-        with:
-          version: 3.15.6
-      - name: Cmake 3.16
-        uses: ./.github/actions/cmake_test
-        with:
-          version: 3.16.2
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: |
+          cmake -B ${{github.workspace}}/build -DBUILD_TESTS=ON
+          cmake --version
+
+      - name: Build
+        run: |
+          cmake --build ${{github.workspace}}/build
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest
+
+      - name: valgrind
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: ${{github.workspace}}/build
+        run: |
+          sudo apt-get install -y valgrind
+
+          ls tests/*_test | \
+            xargs -I{} valgrind --error-exitcode=1 --leak-check=yes ./{} --gtest_shuffle --gtest_repeat=10 > /dev/null
